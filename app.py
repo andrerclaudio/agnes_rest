@@ -1,15 +1,7 @@
-from rest import app
-import logging
+"""This is init module."""
+from flask import Flask
 
+# Place where app is defined
+app = Flask(__name__)
 
-# Print in software terminal
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
-                    datefmt='%d/%b/%Y - %H:%M:%S')
-
-logger = logging.getLogger(__name__)
-
-
-if __name__ == '__main__':
-    # Running app in debug mode
-    app.run(debug=False)
+from rest import agnes_rest
