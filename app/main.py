@@ -1,8 +1,19 @@
+from flask import Flask
 from distutils.log import debug
-from app import app
 import logging
 from flask import request, jsonify
 from importlib.machinery import SourceFileLoader
+
+# Print in software terminal
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
+                    datefmt='%d/%b/%Y - %H:%M:%S')
+
+logger = logging.getLogger(__name__)
+
+
+# Place where app is defined
+app = Flask(__name__)
 
 
 # Print in software terminal
@@ -14,8 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 # Import the helpers module
-helper_module = SourceFileLoader('*', './rest/helpers.py').load_module()
-
+helper_module = SourceFileLoader('*', './app/helpers.py').load_module()
 
 @app.route("/")
 def get_initial_response():

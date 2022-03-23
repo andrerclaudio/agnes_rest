@@ -1,1 +1,1 @@
-web: gunicorn wsgi:agnes
+web: gunicorn run:app
