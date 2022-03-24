@@ -27,23 +27,20 @@ logger = logging.getLogger(__name__)
 # Import the helpers module
 helper_module = SourceFileLoader('*', './app/helpers.py').load_module()
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
 
-# @app.route("/")
-# def get_initial_response():
-#     """Welcome message for the API."""
-#     # Message to the user
-#     message = {
-#         'apiVersion': 'v1.0',
-#         'status': '200',
-#         'message': 'Welcome to the Agnes API'
-#     }
-#     # Making the message looks good
-#     resp = jsonify(message)
-#     # Returning the object
-#     return resp
+@app.route("/")
+def get_initial_response():
+    """Welcome message for the API."""
+    # Message to the user
+    message = {
+        'apiVersion': 'v1.0',
+        'status': '200',
+        'message': 'Welcome to the Agnes API'
+    }
+    # Making the message looks good
+    resp = jsonify(message)
+    # Returning the object
+    return resp
 
 
 @app.errorhandler(404)
