@@ -1,5 +1,5 @@
 click
-Flask~=2.0.3
+Flask
 itsdangerous
 Jinja2
 MarkupSafe
@@ -11,3 +11,4 @@ flask-talisman
 flask_seasurf
 forex-python
 APScheduler
+requests
