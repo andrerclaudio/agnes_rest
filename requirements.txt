@@ -9,3 +9,4 @@ Werkzeug
 gunicorn
 flask-talisman
 flask_seasurf
+forex-python
