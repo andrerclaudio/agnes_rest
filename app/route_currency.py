@@ -7,6 +7,8 @@ All methods related to the dollar API.
 from flask import jsonify
 from forex_python.converter import CurrencyRates
 
+from app.contants import currency_info
+
 
 def dollar_currency():
     """
@@ -19,7 +21,8 @@ def dollar_currency():
 
     # Message to the user
     message = {
-        'dollarXbrl': f'{ret:.2f}',
+        'Exchange Rate': f'{currency_info["5. Exchange Rate"]:.2f}',
+        'Last Refreshed': f'{currency_info["6. Last Refreshed"]}'
     }
     # Making the message looks good
     resp = jsonify(message)

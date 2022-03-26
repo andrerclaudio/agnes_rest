@@ -1,5 +1,4 @@
 # Modules imported
-import datetime
 import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -7,7 +6,7 @@ from flask import Flask, jsonify
 
 import app.route_currency as currency
 import app.schedulers as schedulers
-from app.contants import ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT
+from app.contants import currency_info
 
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
@@ -20,9 +19,7 @@ logger = logging.getLogger(__name__)
 Add a scheduler to the operation
 """
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(schedulers.get_currency, 'interval',
-              seconds=ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT,
-              next_run_time=datetime.datetime.now())
+sched.add_job(schedulers.get_currency, 'interval', seconds=currency_info.ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT)
 sched.start()
 
 # Place where app is defined

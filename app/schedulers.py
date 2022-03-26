@@ -7,6 +7,8 @@ import os
 
 import requests
 
+from app.contants import currency_info
+
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
@@ -28,4 +30,4 @@ def get_currency():
 
     r = requests.get(url)
     data = r.json()
-    logger.debug(data)
+    currency_info.currency_dollar_brl_info = data
