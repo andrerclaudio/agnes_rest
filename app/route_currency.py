@@ -17,8 +17,8 @@ def dollar_currency():
 
     # Message to the user
     message = {
-        'Dólar ($)': f'{currency.dollar_brl_info["5. Exchange Rate"]}',
-        'Úlima atualização': f'{currency.dollar_brl_info["6. Last Refreshed"]}'
+        'dollarRate': f'{currency.dollar_brl_info["5. Exchange Rate"]}',
+        'lastRefreshed': f'{currency.dollar_brl_info["6. Last Refreshed"]}'
     }
     # Making the message looks good
     resp = jsonify(message)
