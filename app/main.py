@@ -1,8 +1,9 @@
-from flask import Flask
-from distutils.log import debug
 import logging
-from flask import request, jsonify
-from importlib.machinery import SourceFileLoader
+import os
+from flask import Flask,request, jsonify
+from flask_talisman import Talisman, ALLOW_FROM
+from flask_seasurf import SeaSurf
+
 
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
@@ -14,7 +15,9 @@ logger = logging.getLogger(__name__)
 
 # Place where app is defined
 app = Flask(__name__)
-
+# app.secret_key = '123abc'
+# csrf = SeaSurf(app)
+talisman = Talisman(app)
 
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
@@ -24,12 +27,8 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger(__name__)
 
 
-# Import the helpers module
-helper_module = SourceFileLoader('*', './app/helpers.py').load_module()
-
-
-@app.route("/")
-def get_initial_response():
+@app.route('/', methods=['GET', 'POST'])
+def index():
     """Welcome message for the API."""
     # Message to the user
     message = {
@@ -61,22 +60,25 @@ def page_not_found(e):
     return resp
 
 
+
+# Example of a route-specific talisman configuration
+@app.route('/secure')
+@talisman()
+def embeddable():
+    return "<html>I can be secured!</html>"
+
+
+
+
+
 @app.route("/api/v1/eval", methods=['GET'])
 def fetch_users():
     """
     Function to fetch the users.
     """
     try:
-
         logger.debug(request.query_string)
-
-        # Call the function to get the query params
-        query_params = helper_module.parse_query_params(request.query_string)
-        # Check if dictionary is not empty
-        if query_params:
-            return jsonify({'andre': 'ribeiro'})
-        else:
-            return jsonify([])
+        return jsonify([])
 
     except:
         # Error while trying to fetch the resource
