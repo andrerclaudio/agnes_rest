@@ -1,6 +1,7 @@
 # Modules imported
 import logging
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify
 
 import app.route_currency as currency
@@ -11,6 +12,16 @@ logging.basicConfig(level=logging.DEBUG,
                     datefmt='%d/%b/%Y - %H:%M:%S')
 
 logger = logging.getLogger(__name__)
+
+
+def sensor():
+    """ Function for test purposes. """
+    logger.debug('Scheduler is alive!')
+
+
+sched = BackgroundScheduler(daemon=True)
+sched.add_job(sensor, 'interval', seconds=5)
+sched.start()
 
 # Place where app is defined
 app = Flask(__name__)
