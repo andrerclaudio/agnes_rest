@@ -2,19 +2,11 @@
 All functions that need to be scheduled are here.
 """
 
-import logging
 import os
 
 import requests
 
 from app.contants import currency_info
-
-# Print in software terminal
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
-                    datefmt='%d/%b/%Y - %H:%M:%S')
-
-logger = logging.getLogger(__name__)
 
 
 def get_currency():
@@ -30,4 +22,5 @@ def get_currency():
 
     r = requests.get(url)
     data = r.json()
-    currency_info.currency_dollar_brl_info = data
+    currency_info['5. Exchange Rate'] = data['5. Exchange Rate']
+    currency_info['6. Last Refreshed'] = data['6. Last Refreshed']
