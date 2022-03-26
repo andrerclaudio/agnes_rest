@@ -1,9 +1,9 @@
+# Modules imported
 import logging
-import os
-from flask import Flask,request, jsonify
-from flask_talisman import Talisman, ALLOW_FROM
-from flask_seasurf import SeaSurf
 
+from flask import Flask, jsonify
+
+import app.route_currency as currency
 
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
@@ -11,20 +11,10 @@ logging.basicConfig(level=logging.DEBUG,
                     datefmt='%d/%b/%Y - %H:%M:%S')
 
 logger = logging.getLogger(__name__)
-
 
 # Place where app is defined
 app = Flask(__name__)
-# app.secret_key = '123abc'
-# csrf = SeaSurf(app)
-# talisman = Talisman(app)
-
-# Print in software terminal
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
-                    datefmt='%d/%b/%Y - %H:%M:%S')
-
-logger = logging.getLogger(__name__)
+app.add_url_rule('/currency', methods=['GET'], view_func=currency.dollar_currency)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -52,6 +42,7 @@ def page_not_found(e):
                 "msg": "This route is currently not supported. Please refer API documentation."
             }
     }
+    logger.error(e)
     # Making the message looks good
     resp = jsonify(message)
     # Sending OK response
@@ -60,6 +51,17 @@ def page_not_found(e):
     return resp
 
 
+"""
+Those below are examples of how to use the API in the future.
+"""
+
+# from flask_talisman import Talisman, ALLOW_FROM
+# from flask_seasurf import SeaSurf
+
+# app.secret_key = '123abc'
+# csrf = SeaSurf(app)
+# talisman = Talisman(app)
+
 
 # Example of a route-specific talisman configuration
 # @app.route('/secure')
@@ -67,20 +69,16 @@ def page_not_found(e):
 # def embeddable():
 #     return "<html>I can be secured!</html>"
 
+# @app.route("/api/v1/eval", methods=['GET'])
+# def fetch_users():
+#     """
+#     Function to fetch the users.
+#     """
+#     try:
+#         logger.debug(request.query_string)
+#         return jsonify([])
 
-
-
-
-@app.route("/api/v1/eval", methods=['GET'])
-def fetch_users():
-    """
-    Function to fetch the users.
-    """
-    try:
-        logger.debug(request.query_string)
-        return jsonify([])
-
-    except:
-        # Error while trying to fetch the resource
-        # Add message for debugging purpose
-        return "", 500
+#     except:
+#         # Error while trying to fetch the resource
+#         # Add message for debugging purpose
+#         return "", 500
