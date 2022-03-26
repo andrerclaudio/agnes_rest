@@ -22,5 +22,4 @@ def get_currency():
 
     r = requests.get(url)
     data = r.json()
-    currency_info['5. Exchange Rate'] = data['5. Exchange Rate']
-    currency_info['6. Last Refreshed'] = data['6. Last Refreshed']
+    currency_info.dollar_brl_info = data['Realtime Currency Exchange Rate']

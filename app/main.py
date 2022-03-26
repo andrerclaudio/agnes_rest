@@ -1,5 +1,4 @@
 # Modules imported
-import datetime
 import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -21,8 +20,7 @@ Add a scheduler to the operation
 """
 sched = BackgroundScheduler(daemon=True)
 sched.add_job(schedulers.get_currency, 'interval',
-              seconds=currency_info.ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT,
-              next_run_time=datetime.datetime.now())
+              seconds=currency_info.ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT)
 sched.start()
 
 # Place where app is defined
