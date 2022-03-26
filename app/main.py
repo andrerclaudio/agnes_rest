@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 # app.secret_key = '123abc'
 # csrf = SeaSurf(app)
-talisman = Talisman(app)
+# talisman = Talisman(app)
 
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
@@ -62,10 +62,10 @@ def page_not_found(e):
 
 
 # Example of a route-specific talisman configuration
-@app.route('/secure')
-@talisman()
-def embeddable():
-    return "<html>I can be secured!</html>"
+# @app.route('/secure')
+# @talisman()
+# def embeddable():
+#     return "<html>I can be secured!</html>"
 
 
 
