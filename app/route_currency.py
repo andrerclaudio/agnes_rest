@@ -21,9 +21,9 @@ def dollar_currency():
 
     # Message to the user
     message = {
-        'dollarRate': f'{value:.2f}',
-        'lastRefreshed': f'{currency.dollar_brl_info["6. Last Refreshed"]}'
+        'dollarRate': f'{value:.2f}'
     }
+
     # Making the message looks good
     resp = jsonify(message)
     # Returning the object
