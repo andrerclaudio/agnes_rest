@@ -2,10 +2,14 @@
 All functions that need to be scheduled are here.
 """
 
+# Build-in modules
+import logging
 import os
 
+# Installed modules
 import requests
 
+# Local modules
 from app.contants import currency_info
 
 
@@ -20,6 +24,10 @@ def get_currency():
     url = 'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=BRL&apikey' \
           '={}'.format(alpha_vantage_apikey)
 
-    r = requests.get(url)
-    data = r.json()
-    currency_info.dollar_brl_info = data['Realtime Currency Exchange Rate']
+    try:
+        r = requests.get(url)
+        data = r.json()
+        currency_info.dollar_brl_info = data['Realtime Currency Exchange Rate']
+
+    except requests.exceptions as e:
+        logging.exception(e, exc_info=False)

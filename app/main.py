@@ -1,9 +1,11 @@
-# Modules imported
+# Build-in modules
 import logging
 
+# Installed modules
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify
 
+# Local modules
 import app.route_currency as currency
 import app.schedulers as schedulers
 from app.contants import currency_info
