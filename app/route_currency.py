@@ -17,7 +17,7 @@ def dollar_currency():
 
     # Message to the user
     message = {
-        'dollarRate': f'{currency.dollar_brl_info["5. Exchange Rate"]}',
+        'dollarRate': f'{currency.dollar_brl_info["5. Exchange Rate"]:.2f}',
         'lastRefreshed': f'{currency.dollar_brl_info["6. Last Refreshed"]}'
     }
     # Making the message looks good
