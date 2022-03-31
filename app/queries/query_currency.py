@@ -8,7 +8,7 @@ All methods related to the dollar API.
 from flask import jsonify
 
 # Local modules
-from app.contants import currency_info as currency
+from app.shared_variables_ import currency_info as currency
 
 
 def dollar_currency():

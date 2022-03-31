@@ -10,7 +10,7 @@ import os
 import requests
 
 # Local modules
-from app.contants import currency_info
+from app.shared_variables_ import currency_info
 
 
 def get_currency():

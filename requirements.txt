@@ -12,3 +12,5 @@ flask_seasurf
 forex-python
 APScheduler
 requests
+PyJWT
+Flask-HTTPAuth
