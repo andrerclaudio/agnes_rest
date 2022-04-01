@@ -7,11 +7,10 @@ from flask import Flask, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Local modules
-from app.auth import token_required, auth
-from app.queries.query_currency import dollar_currency as currency
-
 # import app.schedulers as schedulers
 # from app.schedulers import currency_info
+from app.auth import token_required, auth
+from app.queries.query_currency import dollar_currency as currency
 
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
