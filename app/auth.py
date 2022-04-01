@@ -7,6 +7,15 @@ from functools import wraps
 # Installed modules
 import jwt
 from flask import jsonify, request
+# from flask_login import login_required
+from flask_httpauth import HTTPBasicAuth
+from jwt import InvalidTokenError
+
+# Local modules
+from app.helpers import fetch_query_params
+
+# Basic Authentication - User and Password
+auth = HTTPBasicAuth()
 
 
 def token_required(f):
@@ -24,27 +33,36 @@ def token_required(f):
             agnes_key = os.environ['AGNES_KEY']
             agnes_secret = os.environ['AGNES_SECRET']
 
-        query = request.args
-        token = query.get('token')
+        ret = dict(fetch_query_params(request))
 
-        try:
-            payload = jwt.decode(token, agnes_secret, algorithms=['HS256'])
-            key = payload['key']
+        if 'token' in ret.keys():
+            token = ret.get('token')
+            try:
+                payload = jwt.decode(token, agnes_secret, algorithms=['HS256'])
+                key = payload['key']
 
-            if not token or agnes_key != key:
-                message = {'message': 'The provided API key is not valid'}
+                if not token or agnes_key != key:
+                    message = {'message': 'The provided API key is not valid'}
+                    # Making the message looks good
+                    resp = jsonify(message)
+                    # Sending OK response
+                    resp.status_code = 404
+                    return resp
+
+                return f(*args, **kwargs)
+
+            except InvalidTokenError as e:
+                logging.exception(e, exc_info=False)
+
+                message = {'message': 'Please provide an valid API key'}
                 # Making the message looks good
                 resp = jsonify(message)
                 # Sending OK response
-                resp.status_code = 404
+                resp.status_code = 500
                 return resp
 
-            return f(*args, **kwargs)
-
-        except Exception as e:
-            logging.exception(e, exc_info=False)
-
-            message = {'message': 'Please provide an API key'}
+        else:
+            message = {'message': 'Please provide an valid API key'}
             # Making the message looks good
             resp = jsonify(message)
             # Sending OK response

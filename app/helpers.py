@@ -2,16 +2,14 @@
 This module will encode and parse the query string params.
 """
 
-# Build-in modules
-from urllib.parse import parse_qs
 
-
-def parse_query_params(query_string):
+def fetch_query_params(request):
     """
     Function to parse the query parameter string.
     """
-    # Parse the query param string
-    query_params = dict(parse_qs(query_string))
-    # Get the value from the list
-    query_params = {k: v[0] for k, v in query_params.items()}
-    return query_params
+    values = {}
+    # Fetch the query param string
+    for k, v in request.args.items():
+        values[k] = v
+
+    return values

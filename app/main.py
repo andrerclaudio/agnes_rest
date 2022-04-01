@@ -4,11 +4,10 @@ import logging
 # Installed modules
 # from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify
-from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Local modules
-from app.auth import token_required
+from app.auth import token_required, auth
 from app.queries.query_currency import dollar_currency as currency
 
 # import app.schedulers as schedulers
@@ -33,8 +32,6 @@ Start Flask and related functions and decorators
 """
 # Place where app is defined
 app = Flask(__name__)
-# Basic Authentication User and Password
-auth = HTTPBasicAuth()
 # External methods
 app.add_url_rule('/currency', methods=['GET'], view_func=currency)
 

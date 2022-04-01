@@ -14,3 +14,4 @@ APScheduler
 requests
 PyJWT
 Flask-HTTPAuth
+flask_login
