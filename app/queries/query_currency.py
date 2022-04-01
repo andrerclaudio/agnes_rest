@@ -7,8 +7,24 @@ All methods related to the dollar API.
 # Installed modules
 from flask import jsonify
 
-# Local modules
-from app.shared_variables_ import currency_info as currency
+
+class CurrencyExchangeInfo(object):
+    """
+    Currency constants and data
+    """
+
+    def __init__(self):
+        # The alpha vantage API is free until 500 requests a day. https://www.alphavantage.co/documentation/
+        self.ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT_IN_SECONDS = 300
+        # Hold all information fetched from Alpha Vantage
+        self.dollar_brl_values = {
+            # Initialize the variables
+            '5. Exchange Rate': f'{0.00}'
+        }
+
+
+# Initialize the object
+currency_info = CurrencyExchangeInfo()
 
 
 def dollar_currency():
@@ -17,7 +33,7 @@ def dollar_currency():
     /currency
     """
 
-    value = float(currency.dollar_brl_info["5. Exchange Rate"])
+    value = float(currency_info.dollar_brl_values["5. Exchange Rate"])
 
     # Message to the user
     message = {

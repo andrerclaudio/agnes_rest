@@ -1,20 +1,18 @@
 # Build-in modules
-import configparser
 import logging
-from functools import wraps
 
-import jwt
 # Installed modules
 # from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from app.auth import token_required
 # Local modules
-from app.queries import query_currency as currency
+from app.queries.query_currency import dollar_currency as currency
 
 # import app.schedulers as schedulers
-# from app.constants import currency_info
+# from app.schedulers import currency_info
 
 # Print in software terminal
 logging.basicConfig(level=logging.DEBUG,
@@ -23,65 +21,27 @@ logging.basicConfig(level=logging.DEBUG,
 
 logger = logging.getLogger(__name__)
 
-config = configparser.ConfigParser()
-config.read_file(open('config.ini'))
-
-AGNES_KEY = config['AGNES_KEY']['key']
-AGNES_SECRET = config['AGNES_SECRET']['secret']
-
 """
-Add a scheduler to the operation
+Add a scheduler to the application
 """
 # sched = BackgroundScheduler(daemon=True)
 # sched.add_job(schedulers.get_currency, 'interval', seconds=currency_info.ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT)
 # sched.start()
 
+"""
+Start Flask and related functions and decorators
+"""
 # Place where app is defined
 app = Flask(__name__)
-# Basic Authentication
+# Basic Authentication User and Password
 auth = HTTPBasicAuth()
-
 # External methods
-app.add_url_rule('/currency', methods=['GET'], view_func=currency.dollar_currency)
+app.add_url_rule('/currency', methods=['GET'], view_func=currency)
 
 users = {
     "john": generate_password_hash("hello"),
     "susan": generate_password_hash("bye")
 }
-
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-
-        query = request.args
-        token = query.get('token')
-
-        try:
-            payload = jwt.decode(token, AGNES_SECRET, algorithms=['HS256'])
-            key = payload['key']
-            if not token or AGNES_KEY != key:
-                message = {'message': 'The provided API key is not valid'}
-                # Making the message looks good
-                resp = jsonify(message)
-                # Sending OK response
-                resp.status_code = 404
-
-                return resp
-            return f(*args, **kwargs)
-
-        except Exception as e:
-            logging.exception(e, exc_info=False)
-
-            message = {'message': 'Please provide an API key'}
-            # Making the message looks good
-            resp = jsonify(message)
-            # Sending OK response
-            resp.status_code = 500
-
-            return resp, 500
-
-    return decorated
 
 
 @auth.verify_password
@@ -95,7 +55,6 @@ def verify_password(username, password):
 def index():
     """Welcome message for the API."""
 
-    # Message to the user
     message = {
         'apiVersion': 'v1.0',
         'status': '200',
@@ -131,7 +90,7 @@ def page_not_found(e):
     message = {
         "err":
             {
-                "msg": "This route is currently not supported. Please refer API documentation."
+                "msg": "This route is currently not supported."
             }
     }
     logger.error(e)

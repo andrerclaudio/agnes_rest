@@ -8,8 +8,8 @@ from urllib.parse import parse_qs
 
 def parse_query_params(query_string):
     """
-        Function to parse the query parameter string.
-        """
+    Function to parse the query parameter string.
+    """
     # Parse the query param string
     query_params = dict(parse_qs(query_string))
     # Get the value from the list
