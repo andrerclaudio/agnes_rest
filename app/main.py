@@ -7,8 +7,8 @@ from flask import Flask, jsonify
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app.auth import token_required
 # Local modules
+from app.auth import token_required
 from app.queries.query_currency import dollar_currency as currency
 
 # import app.schedulers as schedulers

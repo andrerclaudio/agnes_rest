@@ -2,8 +2,8 @@
 All functions that need to be scheduled are here.
 """
 
-import configparser
 # Build-in modules
+import configparser
 import logging
 import os
 
