@@ -4,12 +4,11 @@ import logging
 # Installed modules
 # from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
 
 # Local modules
 # import app.schedulers as schedulers
 # from app.schedulers import currency_info
-from app.auth import token_required, auth
+from app.auth import token_required
 from app.queries.query_currency import dollar_currency as currency
 
 # Print in software terminal
@@ -34,17 +33,6 @@ app = Flask(__name__)
 # External methods
 app.add_url_rule('/currency', methods=['GET'], view_func=currency)
 
-users = {
-    "john": generate_password_hash("hello"),
-    "susan": generate_password_hash("bye")
-}
-
-
-@auth.verify_password
-def verify_password(username, password):
-    if username in users and check_password_hash(users.get(username), password):
-        return username
-
 
 @app.route('/', methods=['GET', 'POST'])
 @token_required
@@ -57,22 +45,6 @@ def index():
         'message': 'Welcome to the Agnes API'
     }
 
-    # Making the message looks good
-    resp = jsonify(message)
-    # Returning the object
-    return resp
-
-
-@app.route('/auth', methods=['GET', 'POST'])
-@auth.login_required
-@token_required
-def auth_handler():
-    """Welcome message for the API."""
-
-    # Message to the user
-    message = {
-        'User': '{}'.format(auth.current_user())
-    }
     # Making the message looks good
     resp = jsonify(message)
     # Returning the object
