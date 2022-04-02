@@ -4,10 +4,10 @@ import logging
 import os
 from functools import wraps
 
-# from werkzeug.security import generate_password_hash, check_password_hash
-import jwt
-from flask import jsonify, request
 # Installed modules
+import jwt
+# from werkzeug.security import generate_password_hash, check_password_hash
+from flask import jsonify, request
 from flask_httpauth import HTTPTokenAuth  # HTTPBasicAuth
 from jwt import InvalidTokenError
 
