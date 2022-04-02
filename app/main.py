@@ -8,7 +8,6 @@ from flask import Flask, jsonify
 # Local modules
 # import app.schedulers as schedulers
 # from app.schedulers import currency_info
-from app.auth import token_required
 from app.queries.query_currency import dollar_currency as currency
 
 # Print in software terminal
@@ -35,18 +34,12 @@ app.add_url_rule('/currency', methods=['GET'], view_func=currency)
 
 
 @app.route('/', methods=['GET', 'POST'])
-@token_required
 def index():
-    """Welcome message for the API."""
-
-    message = {
-        'apiVersion': 'v1.0',
-        'status': '200',
-        'message': 'Welcome to the Agnes API'
-    }
-
+    """Application is alive"""
     # Making the message looks good
-    resp = jsonify(message)
+    resp = jsonify([])
+    # Sending OK response
+    resp.status_code = 200
     # Returning the object
     return resp
 
@@ -64,7 +57,7 @@ def page_not_found(e):
     logger.error(e)
     # Making the message looks good
     resp = jsonify(message)
-    # Sending OK response
+    # Sending ERROR response
     resp.status_code = 404
     # Returning the object
     return resp

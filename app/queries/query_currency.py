@@ -7,8 +7,9 @@ All methods related to the dollar API.
 # Installed modules
 from flask import jsonify
 
+from app.auth import auth
 # Local modules
-from app.auth import token_required, auth
+from app.decryption import decryption
 
 
 class CurrencyExchangeInfo(object):
@@ -31,8 +32,8 @@ currency_info = CurrencyExchangeInfo()
 
 
 @auth.login_required
-@token_required
-def dollar_currency():
+@decryption
+def dollar_currency(f):
     """
     Get dollar to Brazilian Real currency rate.
     /currency

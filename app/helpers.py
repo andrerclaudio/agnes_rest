@@ -3,13 +3,14 @@ This module will encode and parse the query string params.
 """
 
 
-def fetch_query_params(request):
+def fetch_payload(request):
     """
     Function to parse the query parameter string.
     """
+
+    # Return the payload string
     values = {}
-    # Fetch the query param string
     for k, v in request.args.items():
         values[k] = v
 
-    return values
+    return values['payload']
