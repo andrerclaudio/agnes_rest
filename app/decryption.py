@@ -10,7 +10,7 @@ from flask import jsonify, request
 from jwt import InvalidTokenError
 
 # Local modules
-from app.helpers import fetch_payload
+from app.helpers import fetch_token
 
 
 def decryption(f):
@@ -27,17 +27,17 @@ def decryption(f):
             agnes_secret = os.environ['AGNES_SECRET']
 
         try:
-            payload_encrypted = fetch_payload(request)
-            payload_decrypted = jwt.decode(payload_encrypted, agnes_secret, algorithms=['HS256'])
-            return f(payload_decrypted)
+            token = fetch_token(request)
+            payload = jwt.decode(token, agnes_secret, algorithms=['HS256'])
+            return f(payload)
 
         except InvalidTokenError as e:
             logging.exception(e, exc_info=False)
-            message = {'message': 'The payload is not valid.'}
+            message = {'message': 'Invalid Credentials.'}
             # Making the message looks good
             resp = jsonify(message)
             # Sending OK response
-            resp.status_code = 400
+            resp.status_code = 403
             return resp
 
     return decorated
