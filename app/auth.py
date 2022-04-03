@@ -43,7 +43,7 @@ def authorization(f):
 
         try:
             header = str(request.headers.get('Authorization')).split(' ')
-            token = header[1]
+            token = header[0]
             payload = jwt.decode(token, agnes_secret, algorithms=['HS256'])
             return f(payload)
 

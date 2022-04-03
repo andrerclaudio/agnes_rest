@@ -37,7 +37,7 @@ app.add_url_rule('/currency', methods=['GET'], view_func=currency)
 def index():
     """Application is alive"""
     # Making the message looks good
-    resp = jsonify([])
+    resp = jsonify(['Ok'])
     # Sending OK response
     resp.status_code = 200
     # Returning the object
