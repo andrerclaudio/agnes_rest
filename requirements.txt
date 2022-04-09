@@ -15,3 +15,5 @@ requests
 PyJWT
 Flask-HTTPAuth
 flask_login
+pymongo[srv]
+Flask-PyMongo
