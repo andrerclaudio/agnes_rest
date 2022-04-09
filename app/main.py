@@ -37,7 +37,19 @@ app.add_url_rule('/currency', methods=['GET'], view_func=currency)
 def index():
     """Application is alive"""
     # Making the message looks good
-    resp = jsonify(['Ok'])
+    resp = jsonify([{"bookName": "Agnes",
+                     "bookAuthor": "Andre Ribeiro",
+                     "bookPublisher": "Cia. das Letras",
+                     "bookIsbn": "123456789",
+                     "bookQtyPages": "123",
+                     "bookCoverLink": 'https://images-na.ssl-images-amazon.com/images/I/41tpztfvPML.jpg'},
+                    {"bookName": "Livoreto",
+                     "bookAuthor": "Michele Costa",
+                     "bookPublisher": "Morro Branco",
+                     "bookIsbn": "987654321",
+                     "bookQtyPages": "456",
+                     "bookCoverLink": 'https://m.media-amazon.com/images/I/41BrJbt2TML.jpg'}
+                    ])
     # Sending OK response
     resp.status_code = 200
     # Returning the object
