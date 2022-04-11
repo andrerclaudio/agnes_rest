@@ -11,7 +11,7 @@ import os
 import requests
 
 # Local modules
-from app.queries.query_currency import currency_info
+from app.functions.query_currency import currency_info
 
 
 def get_currency():
