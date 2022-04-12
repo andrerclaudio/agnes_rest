@@ -1,5 +1,5 @@
 """
-Dispatcher all ingoing functions.
+Dispatcher all ingoing queries.
 """
 
 # Build-in modules
@@ -18,25 +18,37 @@ def query_dispatcher():
     /query
     """
 
-    books_shelf = list(mongo.db.users_shelf.find({}))
-    book_detail = list(mongo.db.library.find({'_id': ObjectId(books_shelf[0]['_id'])}))
+    my_query = {"$or": [{'readingInProgress': True}, {'readingPaused': True}]}
+    books_shelf = list(mongo.db.users_shelf.find(my_query))
+    book_detail = []
+    for idx, value in enumerate(books_shelf):
+        ret = list(mongo.db.library.find({'_id': ObjectId(value['bookTargetId'])}))
+        book_detail.extend(ret)
 
     # Return the raw token string
     values = {}
     for k, v in request.args.items():
         values[k] = v
 
+    reading_info = []
+
+    for idx, value in enumerate(books_shelf):
+        info = {"readingInProgress": value["readingInProgress"],
+                "readingPaused": value["readingPaused"],
+                "readingCanceled": value["readingCanceled"],
+                "readingFinished": value["readingFinished"],
+                "bookTitle": book_detail[idx]["bookTitle"],
+                "bookAuthor": book_detail[idx]["bookAuthor"],
+                "bookPublisher": book_detail[idx]["bookPublisher"],
+                "bookIsbn": book_detail[idx]["bookIsbn"],
+                "bookQtyPages": book_detail[idx]["bookQtyPages"],
+                "bookCoverLink": book_detail[idx]["bookCoverLink"]}
+
+        reading_info.append(info)
+
     # Message to the user
-    resp = jsonify([{"readingInProgress": False,
-                     "readingCanceled": False,
-                     "readingFinished": False,
-                     "bookTitle": "",
-                     "bookAuthor": "",
-                     "bookPublisher": "",
-                     "bookIsbn": "",
-                     "bookQtyPages": "",
-                     "bookCoverLink": ""}
-                    ])
+    resp = jsonify(reading_info)
+
     # Sending OK response
     resp.status_code = 200
     # Returning the object

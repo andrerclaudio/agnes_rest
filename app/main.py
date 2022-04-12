@@ -2,7 +2,6 @@
 import logging
 
 # Installed modules
-# from apscheduler.schedulers.background import BackgroundScheduler
 from flask import jsonify
 
 # Local modules
@@ -17,14 +16,7 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger(__name__)
 
 """
-Add a scheduler to the application
-"""
-# sched = BackgroundScheduler(daemon=True)
-# sched.add_job(schedulers.get_currency, 'interval', seconds=currency_info.ALPHA_VANTAGE_REQUEST_CURRENCY_TIMEOUT)
-# sched.start()
-
-"""
-Start Flask, related functions and basic routes. 
+Create Flask object, related functions and basic routes. 
 """
 app = create_app()
 # External methods
@@ -34,10 +26,8 @@ app.add_url_rule('/query', methods=['GET'], view_func=dispatcher)
 @app.route('/', methods=['GET', 'POST'])
 def index():
     """Application is alive"""
-
     # This route is used when the incoming user is not registered yet.
     resp = jsonify([])
-
     # Sending OK response
     resp.status_code = 200
     # Returning the object
