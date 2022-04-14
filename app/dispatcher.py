@@ -3,13 +3,13 @@ Dispatcher all ingoing queries.
 """
 
 # Build-in modules
-from bson.objectid import ObjectId
 
 # Installed modules
 from flask import jsonify, request
 
 # Local modules
-from .connectors import mongo
+from .queries.fetch_book import query_fetch_book_info
+from .queries.reading_screen import query_reading_screen
 
 
 def query_dispatcher():
@@ -18,38 +18,30 @@ def query_dispatcher():
     /query
     """
 
-    my_query = {"$or": [{'readingInProgress': True}, {'readingPaused': True}]}
-    books_shelf = list(mongo.db.users_shelf.find(my_query))
-    book_detail = []
-    for idx, value in enumerate(books_shelf):
-        ret = list(mongo.db.library.find({'_id': ObjectId(value['bookTargetId'])}))
-        book_detail.extend(ret)
-
-    # Return the raw token string
+    # Parse the query type
     values = {}
-    for k, v in request.args.items():
-        values[k] = v
+    for argument, function in request.args.items():
+        values[argument] = function
 
-    reading_info = []
+    # Route the given query
+    if values['function'] == 'readingScreen':
+        ret = query_reading_screen()
 
-    for idx, value in enumerate(books_shelf):
-        info = {"readingInProgress": value["readingInProgress"],
-                "readingPaused": value["readingPaused"],
-                "readingCanceled": value["readingCanceled"],
-                "readingFinished": value["readingFinished"],
-                "bookTitle": book_detail[idx]["bookTitle"],
-                "bookAuthor": book_detail[idx]["bookAuthor"],
-                "bookPublisher": book_detail[idx]["bookPublisher"],
-                "bookIsbn": book_detail[idx]["bookIsbn"],
-                "bookQtyPages": book_detail[idx]["bookQtyPages"],
-                "bookCoverLink": book_detail[idx]["bookCoverLink"]}
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending OK response
+        resp.status_code = 200
+        # Returning the object
+        return resp
 
-        reading_info.append(info)
+    elif values['function'] == 'fetchBookInfo':
 
-    # Message to the user
-    resp = jsonify(reading_info)
+        isbn = values['isbn']
+        ret = query_fetch_book_info(isbn)
 
-    # Sending OK response
-    resp.status_code = 200
-    # Returning the object
-    return resp
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending OK response
+        resp.status_code = 200
+        # Returning the object
+        return resp
