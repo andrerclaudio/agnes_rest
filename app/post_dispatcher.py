@@ -17,6 +17,10 @@ def post_dispatcher():
     /post
     """
 
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
     # Parse the query type
     values = {}
     for argument, function in request.args.items():
@@ -24,11 +28,11 @@ def post_dispatcher():
 
     if values['function'] == 'addNewReading':
         isbn = values['isbnCode']
-        ret = post_add_new_reading(isbn)
+        ret, code = post_add_new_reading(isbn)
 
-        # Message to the user
-        resp = jsonify(ret)
-        # Sending OK response
-        resp.status_code = 201
-        # Returning the object
-        return resp
+    # Message to the user
+    resp = jsonify(ret)
+    # Sending the response
+    resp.status_code = code
+    # Returning the object
+    return resp

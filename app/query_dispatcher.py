@@ -18,6 +18,10 @@ def query_dispatcher():
     /query
     """
 
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
     # Parse the query type
     values = {}
     for argument, function in request.args.items():
@@ -25,23 +29,17 @@ def query_dispatcher():
 
     # Route the given query
     if values['function'] == 'readingScreen':
-        ret = query_reading_screen()
-
-        # Message to the user
-        resp = jsonify(ret)
-        # Sending OK response
-        resp.status_code = 200
-        # Returning the object
-        return resp
+        # Fetch the info about the readings that are happening
+        ret, code = query_reading_screen()
 
     elif values['function'] == 'fetchBookInfo':
-
+        # Fetch the info about one book given an ISBN code
         isbn = values['isbn']
-        ret = query_fetch_book_info(isbn)
+        ret, code = query_fetch_book_info(isbn)
 
-        # Message to the user
-        resp = jsonify(ret)
-        # Sending OK response
-        resp.status_code = 200
-        # Returning the object
-        return resp
+    # Message to the user
+    resp = jsonify(ret)
+    # Sending the response
+    resp.status_code = code
+    # Returning the object
+    return resp
