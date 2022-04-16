@@ -38,7 +38,7 @@ def isbn_lookup(isbnlike, good_reads):
                 "publisher": publisher,
                 "isbn": book.isbn13,
                 "pagesQty": pages_qty,
-                "coverLink": book.image_url,
+                "coverLink": book.small_image_url,
 
             }
 
