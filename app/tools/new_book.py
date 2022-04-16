@@ -5,6 +5,7 @@ import json
 
 # Installed modules
 import isbnlib
+from bs4 import BeautifulSoup
 
 # Local modules
 
@@ -31,6 +32,10 @@ def isbn_lookup(isbnlike, good_reads):
             publisher = book.publisher if book.publisher is not None else '-'
             pages_qty = book.num_pages if book.num_pages is not None else '0'
 
+            raw = urlopen(book.link)
+            soup = BeautifulSoup(raw, 'html.parser', from_encoding='UTF-8')
+            tag = soup.find("img", {"id": "coverImage"})
+
             book_info = {
 
                 "title": book.title,
@@ -38,7 +43,7 @@ def isbn_lookup(isbnlike, good_reads):
                 "publisher": publisher,
                 "isbn": book.isbn13,
                 "pagesQty": pages_qty,
-                "coverLink": book.small_image_url,
+                "coverLink": tag.attrs['src'],
 
             }
 
