@@ -1,7 +1,6 @@
 # Build-in modules
 import logging
 from urllib.request import urlopen
-import json
 
 # Installed modules
 import isbnlib
