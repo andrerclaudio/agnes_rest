@@ -22,9 +22,9 @@ def fetch_book_remote(isbn):
 
     try:
         # GoodReader initializer
-        config = configparser.ConfigParser()
-        config.read_file(open('config.ini'))
         if 'CLOUD' not in os.environ:
+            config = configparser.ConfigParser()
+            config.read_file(open('config.ini'))
             # If the application is running locally, use config.ini anf if not, use environment variables
             good_reads_key = config['GOOD_READS_KEY']['key']
             good_reads_secret = config['GOOD_READS_SECRET']['secret']
