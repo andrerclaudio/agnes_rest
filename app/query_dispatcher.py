@@ -8,7 +8,7 @@ Dispatcher all ingoing queries.
 from flask import jsonify, request
 
 # Local modules
-from .queries.fetch_book import query_fetch_book_info
+from .queries.fetch_book_locally import query_fetch_book_info
 from .queries.reading_screen import query_reading_screen
 
 

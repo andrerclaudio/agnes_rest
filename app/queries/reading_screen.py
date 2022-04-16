@@ -5,11 +5,7 @@ import logging
 # Local modules
 from app.connectors import mongo
 
-# Print in software terminal
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
-                    datefmt='%d/%b/%Y - %H:%M:%S')
-
+# Printing object
 logger = logging.getLogger(__name__)
 
 

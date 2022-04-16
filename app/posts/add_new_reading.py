@@ -8,11 +8,7 @@ import pytz
 # Local modules
 from app.connectors import mongo
 
-# Print in software terminal
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
-                    datefmt='%d/%b/%Y - %H:%M:%S')
-
+# Printing object
 logger = logging.getLogger(__name__)
 
 
@@ -58,15 +54,25 @@ def post_add_new_reading(isbn):
                 "targetBookId": book_id
             }]
             # Store the New Reading schema on the user shelf.
-            mongo.db.users_shelf.insert_many(info)
-            # Prepare the answer back
-            rsp = {
-                'successOnRequest': True,
-                'isbn': ret[0]['isbn'],
-                'title': ret[0]['title']
-            }
-            # Created
-            code = 201
+            added = mongo.db.users_shelf.insert_many(info)
+            if not added:
+                # Make the default answer
+                rsp = {
+                    'successOnRequest': False,
+                    'isbn': '',
+                    'title': ''
+                }
+                # The code is Ok but a flag with fail will be sent back.
+                code = 200
+            else:
+                # Prepare the answer back
+                rsp = {
+                    'successOnRequest': True,
+                    'isbn': ret[0]['isbn'],
+                    'title': ret[0]['title']
+                }
+                # Created
+                code = 201
 
     except Exception as e:
         logger.exception(e, exc_info=False)

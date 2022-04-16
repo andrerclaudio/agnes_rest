@@ -18,3 +18,7 @@ flask_login
 pymongo[srv]
 Flask-PyMongo
 pytz
+beautifulsoup4
+isbnlib
+xmltodict
+rauth
