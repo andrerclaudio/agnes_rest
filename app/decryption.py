@@ -17,10 +17,9 @@ def decryption(f):
     @wraps(f)
     def decorated(*args, **kwargs):
 
-        config = configparser.ConfigParser()
-        config.read_file(open('config.ini'))
-
         if 'CLOUD' not in os.environ:
+            config = configparser.ConfigParser()
+            config.read_file(open('config.ini'))
             # If the application is running locally, use config.ini anf if not, use environment variables
             agnes_secret = config['AGNES_SECRET']['secret']
         else:
