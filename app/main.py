@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger(__name__)
 
 """
-Create Flask object, related queries and basic routes. 
+Create Flask object, related Queries and basic routes. 
 """
 app = create_app()
 # External methods

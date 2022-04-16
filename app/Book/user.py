@@ -9,7 +9,7 @@ from . import shelf
 class GoodreadsUser():
     def __init__(self, user_dict, client):
         self._user_dict = user_dict
-        self._client = client  # for later queries
+        self._client = client  # for later Queries
 
     def __repr__(self):
         if self.user_name:

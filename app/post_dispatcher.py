@@ -1,5 +1,5 @@
 """
-Dispatcher all ingoing posts.
+Dispatcher all ingoing Posts.
 """
 
 # Build-in modules
@@ -8,7 +8,7 @@ Dispatcher all ingoing posts.
 from flask import jsonify, request
 
 # Local modules
-from app.posts.add_new_reading import post_add_new_reading
+from app.Posts.add_new_reading import post_add_new_reading
 
 
 def post_dispatcher():

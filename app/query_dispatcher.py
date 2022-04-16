@@ -1,5 +1,5 @@
 """
-Dispatcher all ingoing queries.
+Dispatcher all ingoing Queries.
 """
 
 # Build-in modules
@@ -8,8 +8,8 @@ Dispatcher all ingoing queries.
 from flask import jsonify, request
 
 # Local modules
-from .queries.fetch_book_locally import query_fetch_book_info
-from .queries.reading_screen import query_reading_screen
+from .Queries.fetch_book_locally import query_fetch_book_info
+from .Queries.reading_screen import query_reading_screen
 
 
 def query_dispatcher():
