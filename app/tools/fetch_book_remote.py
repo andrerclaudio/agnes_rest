@@ -37,7 +37,7 @@ def fetch_book_remote(isbn):
         book_info = isbn_lookup(isbn, good_reads)
         # Check for a valid information
         if len(book_info) > 0:
-            # Save book info into the user Database
+            # Return the book info
             rsp = book_info
 
     except Exception as e:
