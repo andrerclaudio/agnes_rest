@@ -106,28 +106,17 @@ def query_fetch_book_info(isbn):
                 }]
                 # Save on Database
                 added = mongo.db.library.insert_many(book)
-
                 if not added:
-                    # Make the default answer
-                    rsp = {
-                        "successOnRequest": False,
-                        "title": "",
-                        "author": "",
-                        "publisher": "",
-                        "isbn": "",
-                        "pagesQty": "",
-                        "genres": "",
-                        "coverType": "",
-                        "coverLink": "",
-                        "ratingAverage": ""
-                    }
-                    # The code is Ok but a flag with fail will be sent back.
-                    code = 200
-                else:
-                    rsp["successOnRequest"] = True
-                    rsp.update(ret)
+                    raise Exception('The database failed to reply with the book info')
+
+                rsp["successOnRequest"] = True
+                rsp.update(ret)
 
     except Exception as e:
+        # If something wrong happens, raise an Internal ser error
+        rsp = []
+        # Internal server error
+        code = 500
         logger.exception(e, exc_info=False)
 
     finally:

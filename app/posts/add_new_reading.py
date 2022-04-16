@@ -56,25 +56,24 @@ def post_add_new_reading(isbn):
             # Store the New Reading schema on the user shelf.
             added = mongo.db.users_shelf.insert_many(info)
             if not added:
-                # Make the default answer
-                rsp = {
-                    'successOnRequest': False,
-                    'isbn': '',
-                    'title': ''
-                }
-                # The code is Ok but a flag with fail will be sent back.
-                code = 200
-            else:
-                # Prepare the answer back
-                rsp = {
-                    'successOnRequest': True,
-                    'isbn': ret[0]['isbn'],
-                    'title': ret[0]['title']
-                }
-                # Created
-                code = 201
+                raise Exception('The database failed to reply with the book info')
+
+            # Prepare the answer back
+            rsp = {
+                'successOnRequest': True,
+                'isbn': ret[0]['isbn'],
+                'title': ret[0]['title']
+            }
+            # Created
+            code = 201
+        else:
+            raise Exception('The database failed to reply with the book info')
 
     except Exception as e:
+        # If something wrong happens, raise an Internal ser error
+        rsp = []
+        # Internal server error
+        code = 500
         logger.exception(e, exc_info=False)
 
     finally:
