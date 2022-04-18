@@ -7,7 +7,7 @@ import os
 
 # Local modules
 from app.Book.client import GoodReadsClient
-from app.tools.new_book import isbn_lookup
+from app.Tools.new_book import isbn_lookup
 
 # Printing object
 logger = logging.getLogger(__name__)
