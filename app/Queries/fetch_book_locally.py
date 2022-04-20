@@ -5,6 +5,8 @@ import logging
 from app.connectors import mongo
 from app.Tools.fetch_book_remote import fetch_book_remote
 from app.helpers import fix_isbn_format
+from app.validation import ValidationMessages
+
 
 # Printing object
 logger = logging.getLogger(__name__)
@@ -18,6 +20,7 @@ def query_fetch_book_info(isbn):
     # Make the default answer
     rsp = {
         "successOnRequest": False,
+        "errorCode": ValidationMessages.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
         "title": "",
         "author": "",
         "publisher": "",
@@ -43,6 +46,7 @@ def query_fetch_book_info(isbn):
                 for idx, value in enumerate(ret):
                     rsp = {
                         "successOnRequest": True,
+                        "errorCode": ValidationMessages.SUCCESS,
                         "title": ret[idx]["title"],
                         "author": ret[idx]["author"],
                         "publisher": ret[idx]["publisher"],
@@ -111,9 +115,10 @@ def query_fetch_book_info(isbn):
                     # Save on Database
                     added = mongo.db.library.insert_many(book)
                     if not added:
-                        raise Exception('The database failed to reply with the book info')
+                        raise Exception('The database have failed to add the new book to database.')
 
                     rsp["successOnRequest"] = True
+                    rsp["errorCode"] = ValidationMessages.SUCCESS,
                     rsp.update(ret)
 
     except Exception as e:

@@ -4,6 +4,7 @@ import logging
 
 # Local modules
 from app.connectors import mongo
+from app.validation import ValidationMessages
 
 # Printing object
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ def query_reading_screen():
     # Make the default answer
     rsp = [{
         "successOnRequest": False,
+        "errorCode": ValidationMessages.NO_ACTIVE_OR_PAUSED_READING_WAS_FOUND,
         "readingInProgress": False,
         "readingPaused": False,
         "readingCanceled": False,
@@ -49,6 +51,7 @@ def query_reading_screen():
                 for idx, value in enumerate(query_resp):
                     info = {
                         "successOnRequest": True,
+                        "errorCode": ValidationMessages.SUCCESS,
                         "readingInProgress": value["readingInProgress"],
                         "readingPaused": value["readingPaused"],
                         "readingCanceled": value["readingCanceled"],
@@ -61,9 +64,6 @@ def query_reading_screen():
                         "coverLink": book_details[idx]["coverLink"]
                     }
                     rsp.append(info)
-                code = 200
-            else:
-                raise Exception('The database failed to reply with the book info')
 
     except Exception as e:
         # If something wrong happens, raise an Internal ser error

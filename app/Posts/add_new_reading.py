@@ -9,6 +9,7 @@ import pytz
 from app.Queries.reading_screen import query_reading_screen
 from app.connectors import mongo
 from app.helpers import fix_isbn_format
+from app.validation import ValidationMessages
 
 # Printing object
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ def post_add_new_reading(isbn):
     # Make the default answer
     rsp = {
         'successOnRequest': False,
+        "errorCode": ValidationMessages.BOOK_HAS_ALREADY_BEEN_ADDED_TO_THE_BOOK_SHELF,
         'isbn': '',
         'title': ''
     }
@@ -33,8 +35,8 @@ def post_add_new_reading(isbn):
         isbn = fix_isbn_format(isbn)
         if isbn:
             # Check whether the given Isbn is already active (Reading ou Paused) or not.
-            active_books = query_reading_screen()
-            if isbn not in [code['isbn'] for code in active_books[0]]:
+            active_books, _ = query_reading_screen()
+            if isbn not in [active_isbn['isbn'] for active_isbn in active_books]:
                 # Find the book by ISBN.
                 ret = list(mongo.db.library.find({'isbn': isbn}))
                 # Make sure if a book was fetched
@@ -64,18 +66,17 @@ def post_add_new_reading(isbn):
                     # Store the New Reading schema on the user shelf.
                     added = mongo.db.users_shelf.insert_many(info)
                     if not added:
-                        raise Exception('The database failed to reply with the book info')
+                        raise Exception('The database have failed to add the book to user shelf.')
 
                     # Prepare the answer back
                     rsp = {
                         'successOnRequest': True,
+                        "errorCode": ValidationMessages.SUCCESS,
                         'isbn': ret[0]['isbn'],
                         'title': ret[0]['title']
                     }
                     # Created
                     code = 201
-                else:
-                    raise Exception('The database failed to reply with the book info')
 
     except Exception as e:
         # If something wrong happens, raise an Internal ser error
