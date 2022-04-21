@@ -10,7 +10,7 @@ from flask import jsonify, request
 from jwt import InvalidTokenError
 
 # Local modules
-from app.helpers import fetch_token
+from app.Tools.helpers import fetch_args
 
 
 def decryption(f):
@@ -26,7 +26,7 @@ def decryption(f):
             agnes_secret = os.environ['AGNES_SECRET']
 
         try:
-            token = fetch_token(request)
+            token = fetch_args()
             payload = jwt.decode(token, agnes_secret, algorithms=['HS256'])
             return f(payload)
 

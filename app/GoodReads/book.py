@@ -118,7 +118,7 @@ class GoodreadsBook:
 
     @property
     def format(self):
-        """Book format"""
+        """GoodReads format"""
         return self._book_dict['format']
 
     @property

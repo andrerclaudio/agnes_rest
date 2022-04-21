@@ -22,14 +22,14 @@ def create_app():
     app = Flask(__name__, instance_relative_config=False)
 
     if 'CLOUD' not in os.environ:
-        # MongoDB
+        # If the application is running locally, use config.ini anf if not, set environment variables# MongoDB
         config = configparser.ConfigParser()
         config.read_file(open('config.ini'))
-        # If the application is running locally, use config.ini anf if not, use environment variables
         mongo_path = config['MONGO_PATH']['url']
     else:
         mongo_path = os.environ['MONGO_PATH']
 
+    # MongoDB
     app.config["MONGO_URI"] = mongo_path
     mongo.init_app(app)
 

@@ -15,7 +15,7 @@ class GoodreadsReview():
 
     @property
     def book(self):
-        """Book that the review belongs to"""
+        """GoodReads that the review belongs to"""
         return self._review_dict['book']
 
     @property
@@ -38,22 +38,22 @@ class GoodreadsReview():
 
     @property
     def recommended_for(self):
-        """Book recommended for"""
+        """GoodReads recommended for"""
         return self._review_dict['recommended_for']
 
     @property
     def recommended_by(self):
-        """Book recommended by"""
+        """GoodReads recommended by"""
         return self._review_dict['recommended_by']
 
     @property
     def started_at(self):
-        """Book started at"""
+        """GoodReads started at"""
         return self._review_dict['started_at']
 
     @property
     def read_at(self):
-        """Book read at"""
+        """GoodReads read at"""
         return self._review_dict['read_at']
 
     @property

@@ -6,11 +6,10 @@ from flask import jsonify
 
 # Local modules
 from app.connectors import create_app
-from app.query_dispatcher import query_dispatcher as queries
-from app.post_dispatcher import post_dispatcher as posts
+from app.dispatcher import post_dispatcher as posts, query_dispatcher as queries
 
 # Print in software terminal
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s | %(process)d | %(name)s | %(levelname)s:  %(message)s',
                     datefmt='%d/%b/%Y - %H:%M:%S')
 
@@ -25,7 +24,7 @@ app.add_url_rule('/query', methods=['GET'], view_func=queries)
 app.add_url_rule('/post', methods=['POST'], view_func=posts)
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
     """Application is alive"""
     # This route is used when the incoming user is not registered yet.

@@ -14,7 +14,7 @@ class GoodreadsOwnedBook:
 
     @property
     def book(self):
-        """Book owned"""
+        """GoodReads owned"""
         return book.GoodreadsBook(self._owned_book_dict['book'])
 
     @property
