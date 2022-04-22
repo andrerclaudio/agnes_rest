@@ -9,7 +9,7 @@ import pytz
 # Local modules
 from app.connectors import mongo
 from app.Tools.helpers import isbn_checker
-from app.error_messages import ValidationMessages
+from app.error_codes import ValidationMessages
 
 # Printing object
 logger = logging.getLogger(__name__)
@@ -32,6 +32,14 @@ class UserShelf(object):
         Add a new book to user Shelf given an ISBN code
         """
 
+        # Make the default answer
+        self.response = [{
+            'successOnRequest': False,
+            "errorCode": ValidationMessages.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
+            'isbn': '',
+            'title': ''
+        }]
+
         try:
             if isbn:
                 # Check whether the given Isbn is already active (Reading ou Paused) or not.
@@ -39,42 +47,43 @@ class UserShelf(object):
                 if isbn not in [active_isbn['isbn'] for active_isbn in active_books]:
                     # Find the book by ISBN.
                     ret = list(mongo.db.library.find({'isbn': isbn}))
-                    book_id = str(ret[0]['_id'])
-                    # Mount the New Reading Schema.
-                    info = [{
-                        "readingInProgress": True,
-                        "readingPaused": False,
-                        "readingCanceled": False,
-                        "readingFinished": False,
-                        "favorite": False,
-                        "lastPage": "",
-                        "rating": "",
-                        "review": "",
-                        "quotes": {},
-                        "remarks": {},
-                        "sameBookCount": {
-                            "0": {
-                                "startedAt": datetime.now(tz=pytz.UTC),
-                                "finishedAt": "",
-                                "canceledAt": ""
-                            }
-                        },
-                        "targetBookId": book_id
-                    }]
-                    # Store the New Reading schema on the user shelf.
-                    added = mongo.db.users_shelf.insert_many(info)
-                    if not added:
-                        raise Exception('The database have failed to add the book to user shelf.')
+                    if len(ret) > 0:
+                        book_id = str(ret[0]['_id'])
+                        # Mount the New Reading Schema.
+                        info = [{
+                            "readingInProgress": True,
+                            "readingPaused": False,
+                            "readingCanceled": False,
+                            "readingFinished": False,
+                            "favorite": False,
+                            "lastPage": "",
+                            "rating": "",
+                            "review": "",
+                            "quotes": {},
+                            "remarks": {},
+                            "sameBookCount": {
+                                "0": {
+                                    "startedAt": datetime.now(tz=pytz.UTC),
+                                    "finishedAt": "",
+                                    "canceledAt": ""
+                                }
+                            },
+                            "targetBookId": book_id
+                        }]
+                        # Store the New Reading schema on the user shelf.
+                        added = mongo.db.users_shelf.insert_many(info)
+                        if not added:
+                            raise Exception('The database have failed to add the book to user shelf.')
 
-                    # Prepare the answer back
-                    self.response = [{
-                        'successOnRequest': True,
-                        "errorCode": ValidationMessages.SUCCESS,
-                        'isbn': ret[0]['isbn'],
-                        'title': ret[0]['title']
-                    }]
-                    # Created
-                    self.code = 201
+                        # Prepare the answer back
+                        self.response = [{
+                            'successOnRequest': True,
+                            "errorCode": ValidationMessages.SUCCESS,
+                            'isbn': ret[0]['isbn'],
+                            'title': ret[0]['title']
+                        }]
+                        # Created
+                        self.code = 201
                 else:
                     # Make the default answer
                     self.response = [{

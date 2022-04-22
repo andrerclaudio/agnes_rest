@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 # Local modules
 from app.connectors import mongo
 from app.Tools.helpers import isbn_checker
-from app.error_messages import ValidationMessages
+from app.error_codes import ValidationMessages
 from app.GoodReads.client import GoodReadsClient
 
 # Printing object
@@ -114,11 +114,13 @@ class FetchBookInformation(object):
                         "publisher": ret["publisher"],
                         "isbn": ret["isbn"],
                         "pagesQty": ret["pagesQty"],
+                        "description": ret["description"],
+                        "link": ret["link"],
                         "genres": "",
                         "coverType": "",
                         "coverLink": ret["coverLink"],
                         "favoriteCount": "",
-                        "language": "",
+                        "language": ret["language_code"],
                         "publicationDate": "",
                         "similar": [
                             {
@@ -157,6 +159,7 @@ class FetchBookInformation(object):
                             }
                         ]
                     }]
+
                     # Save on Database
                     added = mongo.db.library.insert_many(book)
                     if not added:
@@ -221,6 +224,8 @@ class FetchBookInformation(object):
             book = good_reads.book(isbn=isbn)
 
             publisher = book.publisher if book.publisher is not None else '-'
+            description = book.description if book.description is not None else '-'
+            language = book.language_code if book.language_code is not None else '-'
             pages_qty = book.num_pages if book.num_pages is not None else '0'
 
             headers = {
@@ -250,6 +255,9 @@ class FetchBookInformation(object):
                 "isbn": book.isbn13,
                 "pagesQty": pages_qty,
                 "coverLink": tag.attrs['src'],
+                "description": description,
+                "language_code": language,
+                "link": book.link
 
             }
 

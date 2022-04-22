@@ -10,7 +10,7 @@ from flask import jsonify, request
 
 # Local modules
 from app.user_shelf import UserShelf
-from app.error_messages import ValidationMessages
+from app.error_codes import ValidationMessages
 from app.book_information import FetchBookInformation
 
 # Printing object
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def post_dispatcher():
     """
-    Retrieve an information given some parameters.
+    Reply on posts requests.
     /post
     """
 
@@ -51,7 +51,7 @@ def post_dispatcher():
 
 def query_dispatcher():
     """
-    Retrieve an information given some parameters.
+    Reply on queries requests.
     /query
     """
 
