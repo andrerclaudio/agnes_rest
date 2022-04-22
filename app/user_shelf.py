@@ -9,7 +9,7 @@ import pytz
 # Local modules
 from app.connectors import mongo
 from app.Tools.helpers import isbn_checker
-from app.error_codes import ValidationMessages
+from app.error_codes import ValidationCodes
 
 # Printing object
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class UserShelf(object):
         # Make the default answer
         self.response = [{
             'successOnRequest': False,
-            "errorCode": ValidationMessages.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
+            "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
             'isbn': '',
             'title': ''
         }]
@@ -78,7 +78,7 @@ class UserShelf(object):
                         # Prepare the answer back
                         self.response = [{
                             'successOnRequest': True,
-                            "errorCode": ValidationMessages.SUCCESS,
+                            "errorCode": ValidationCodes.SUCCESS,
                             'isbn': ret[0]['isbn'],
                             'title': ret[0]['title']
                         }]
@@ -88,7 +88,7 @@ class UserShelf(object):
                     # Make the default answer
                     self.response = [{
                         'successOnRequest': False,
-                        "errorCode": ValidationMessages.BOOK_HAS_ALREADY_BEEN_ADDED_TO_BOOK_SHELF,
+                        "errorCode": ValidationCodes.BOOK_HAS_ALREADY_BEEN_ADDED_TO_BOOK_SHELF,
                         'isbn': '',
                         'title': ''
                     }]
@@ -111,7 +111,7 @@ class UserShelf(object):
         # Make the default answer
         self.response = [{
             "successOnRequest": False,
-            "errorCode": ValidationMessages.NO_ACTIVE_OR_PAUSED_READING_WAS_FOUND,
+            "errorCode": ValidationCodes.NO_ACTIVE_OR_PAUSED_READING_WAS_FOUND,
             "readingInProgress": False,
             "readingPaused": False,
             "readingCanceled": False,
@@ -142,7 +142,7 @@ class UserShelf(object):
                     for idx, value in enumerate(query_resp):
                         info = {
                             "successOnRequest": True,
-                            "errorCode": ValidationMessages.SUCCESS,
+                            "errorCode": ValidationCodes.SUCCESS,
                             "readingInProgress": value["readingInProgress"],
                             "readingPaused": value["readingPaused"],
                             "readingCanceled": value["readingCanceled"],

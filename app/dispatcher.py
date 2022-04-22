@@ -10,7 +10,7 @@ from flask import jsonify, request
 
 # Local modules
 from app.user_shelf import UserShelf
-from app.error_codes import ValidationMessages
+from app.error_codes import ValidationCodes
 from app.book_information import FetchBookInformation
 
 # Printing object
@@ -76,7 +76,7 @@ def query_dispatcher():
             fetch = FetchBookInformation()
             ret, code = fetch.on_local_library(isbn=values['isbn'])
             if code == 200 and not ret[0]['successOnRequest'] and \
-                    ret[0]['errorCode'] == ValidationMessages.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
+                    ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
                 # In fails on local Library, go to internet
                 ret, code = fetch.on_internet(isbn=values['isbn'])
 

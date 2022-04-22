@@ -1,5 +1,7 @@
-class ValidationMessages (object):
+class ValidationCodes (object):
+    """
 
+    """
     __slots__ = ()
     SUCCESS = 100
     NO_ACTIVE_OR_PAUSED_READING_WAS_FOUND = 101

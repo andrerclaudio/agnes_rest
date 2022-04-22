@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 # Local modules
 from app.connectors import mongo
 from app.Tools.helpers import isbn_checker
-from app.error_codes import ValidationMessages
+from app.error_codes import ValidationCodes
 from app.GoodReads.client import GoodReadsClient
 
 # Printing object
@@ -37,7 +37,7 @@ class FetchBookInformation(object):
         # Make the default answer
         self.response = [{
             "successOnRequest": False,
-            "errorCode": ValidationMessages.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
+            "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
             "title": "",
             "author": "",
             "publisher": "",
@@ -62,7 +62,7 @@ class FetchBookInformation(object):
                     for idx, value in enumerate(ret):
                         self.response = [{
                             "successOnRequest": True,
-                            "errorCode": ValidationMessages.SUCCESS,
+                            "errorCode": ValidationCodes.SUCCESS,
                             "title": ret[idx]["title"],
                             "author": ret[idx]["author"],
                             "publisher": ret[idx]["publisher"],
@@ -94,9 +94,9 @@ class FetchBookInformation(object):
         """
 
         # Make the default answer
-        self.response = {
+        self.response = [{
             "successOnRequest": False,
-            "errorCode": ValidationMessages.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
+            "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
             "title": "",
             "author": "",
             "publisher": "",
@@ -109,7 +109,7 @@ class FetchBookInformation(object):
             "coverLink": "",
             "language": "",
             "ratingAverage": ""
-        }
+        }]
 
         try:
             if isbn:
@@ -129,7 +129,7 @@ class FetchBookInformation(object):
                         "coverType": "",
                         "coverLink": ret["coverLink"],
                         "favoriteCount": "",
-                        "language": ret["languageCode"],
+                        "language": ret["language"],
                         "publicationDate": "",
                         "similar": [
                             {
@@ -174,9 +174,22 @@ class FetchBookInformation(object):
                     if not added:
                         raise Exception('The database have failed to add the new book to database.')
 
-                    self.response["successOnRequest"] = True
-                    self.response["errorCode"] = ValidationMessages.SUCCESS,
-                    self.response.update(ret)
+                    self.response = [{
+                        "successOnRequest": True,
+                        "errorCode": ValidationCodes.SUCCESS,
+                        "title": ret["title"],
+                        "author": ret["author"],
+                        "publisher": ret["publisher"],
+                        "isbn": ret["isbn"],
+                        "pagesQty": ret["pagesQty"],
+                        "description": ret["description"],
+                        "link": ret["link"],
+                        "genres": "",
+                        "coverType": "",
+                        "coverLink": ret["coverLink"],
+                        "language": ret["language"],
+                        "ratingAverage": ""
+                    }]
 
         except Exception as e:
             # If something wrong happens, raise an Internal ser error
@@ -186,7 +199,7 @@ class FetchBookInformation(object):
             logger.exception(e, exc_info=False)
 
         finally:
-            return [self.response], self.code
+            return self.response, self.code
 
     def __good_reads(self, isbn):
         """
@@ -265,7 +278,7 @@ class FetchBookInformation(object):
                 "pagesQty": pages_qty,
                 "coverLink": tag.attrs['src'],
                 "description": description,
-                "languageCode": language,
+                "language": language,
                 "link": book.link
 
             }
