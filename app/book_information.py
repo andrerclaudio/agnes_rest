@@ -43,9 +43,12 @@ class FetchBookInformation(object):
             "publisher": "",
             "isbn": "",
             "pagesQty": "",
+            "description": "",
+            "link": "",
             "genres": "",
             "coverType": "",
             "coverLink": "",
+            "language": "",
             "ratingAverage": ""
         }]
 
@@ -65,9 +68,12 @@ class FetchBookInformation(object):
                             "publisher": ret[idx]["publisher"],
                             "isbn": ret[idx]["isbn"],
                             "pagesQty": ret[idx]["pagesQty"],
+                            "description": ret[idx]["description"],
+                            "link": ret[idx]["link"],
                             "genres": ret[idx]["genres"],
                             "coverType": ret[idx]["coverType"],
                             "coverLink": ret[idx]["coverLink"],
+                            "language": ret[idx]["language"],
                             "ratingAverage": ret[idx]["ratingAverage"]
                         }]
 
@@ -96,9 +102,12 @@ class FetchBookInformation(object):
             "publisher": "",
             "isbn": "",
             "pagesQty": "",
+            "description": "",
+            "link": "",
             "genres": "",
             "coverType": "",
             "coverLink": "",
+            "language": "",
             "ratingAverage": ""
         }
 
@@ -120,7 +129,7 @@ class FetchBookInformation(object):
                         "coverType": "",
                         "coverLink": ret["coverLink"],
                         "favoriteCount": "",
-                        "language": ret["language_code"],
+                        "language": ret["languageCode"],
                         "publicationDate": "",
                         "similar": [
                             {
@@ -256,7 +265,7 @@ class FetchBookInformation(object):
                 "pagesQty": pages_qty,
                 "coverLink": tag.attrs['src'],
                 "description": description,
-                "language_code": language,
+                "languageCode": language,
                 "link": book.link
 
             }
