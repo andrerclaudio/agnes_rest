@@ -1,6 +1,5 @@
 # Build-in modules
 import collections
-import os
 import webbrowser
 
 # Project modules
