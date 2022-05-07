@@ -8,10 +8,10 @@ import logging
 # Installed modules
 from flask import jsonify, request
 
+from app.book_information import RetrieveBookInformation
+from app.error_codes import ValidationCodes
 # Local modules
 from app.user_shelf import UserShelf
-from app.error_codes import ValidationCodes
-from app.book_information import FetchBookInformation
 
 # Printing object
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def post_dispatcher():
     """
-    Reply on posts requests.
+    Reply on Post requests.
     /post
     """
 
@@ -28,11 +28,12 @@ def post_dispatcher():
     ret = []
 
     try:
-        # Parse the query type
+        # Parse the Post type
         values = {}
         for argument, function in request.args.items():
             values[argument] = function
 
+        # Route the given Post
         if values['function'] == 'addNewBook':
             user = UserShelf()
             ret, code = user.add_new_book(isbn=values['isbnCode'])
@@ -51,7 +52,7 @@ def post_dispatcher():
 
 def query_dispatcher():
     """
-    Reply on queries requests.
+    Reply on Query requests.
     /query
     """
 
@@ -60,25 +61,24 @@ def query_dispatcher():
     ret = []
 
     try:
-        # Parse the query type
+        # Parse the Query type
         values = {}
         for argument, function in request.args.items():
             values[argument] = function
 
         # Route the given query
         if values['function'] == 'currentReadings':
-            # Fetch the info about the current readings
+            # Fetch the User current readings
             user = UserShelf()
             ret, code = user.current_readings()
 
         elif values['function'] == 'fetchBookInfo':
             # Fetch the info about a book given an ISBN code
-            fetch = FetchBookInformation()
-            ret, code = fetch.on_local_library(isbn=values['isbn'])
+            ret, code = RetrieveBookInformation().on_local_library(isbn=values['isbn'])
             if code == 200 and not ret[0]['successOnRequest'] and \
                     ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
                 # In fails on local Library, go to internet
-                ret, code = fetch.on_internet(isbn=values['isbn'])
+                ret, code = RetrieveBookInformation().on_internet(isbn=values['isbn'])
 
     except Exception as e:
         logger.exception(e, exc_info=False)

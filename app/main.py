@@ -28,7 +28,13 @@ app.add_url_rule('/post', methods=['POST'], view_func=posts)
 def index():
     """Application is alive"""
     # This route is used when the incoming user is not registered yet.
-    resp = jsonify([])
+    message = {
+        "welcome":
+            {
+                "msg": "Agnes. Your reading companion!"
+            }
+    }
+    resp = jsonify(message)
     # Sending OK response
     resp.status_code = 200
     # Returning the object

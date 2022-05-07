@@ -1,56 +1,46 @@
 # Build-in modules
-import os
-import logging
 import configparser
+import logging
+import os
 
 # Installed modules
 import requests
 from bs4 import BeautifulSoup
 
-# Local modules
-from app.connectors import mongo
-from app.Tools.helpers import isbn_checker
-from app.error_codes import ValidationCodes
 from app.GoodReads.client import GoodReadsClient
+from app.Tools.helpers import isbn_checker
+# Local modules
+from app.book_format import BookFullInformation
+from app.connectors import mongo
+from app.error_codes import ValidationCodes
 
 # Printing object
 logger = logging.getLogger(__name__)
 
 
-class FetchBookInformation(object):
+class RetrieveBookInformation(object):
     """
-    Add a new reading given a ISBN.
+    Retrieve information about a Book locally.
     """
 
     def __init__(self):
         # Make the default answer
-        self.response = []
+        # Make the default answer
+        self.response = [
+            {
+                "successOnRequest": False,
+                "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
+                "bookInfo": BookFullInformation.bookFullInformation
+            }
+        ]
         # The code is Ok but more details is in self.response
         self.code = 200
 
     @isbn_checker
-    def on_local_library(self, isbn=''):
+    def on_local_library(self, isbn):
         """
         Fetch book information given an ISBN code on local Library.
         """
-
-        # Make the default answer
-        self.response = [{
-            "successOnRequest": False,
-            "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
-            "title": "",
-            "author": "",
-            "publisher": "",
-            "isbn": "",
-            "pagesQty": "",
-            "description": "",
-            "link": "",
-            "genres": "",
-            "coverType": "",
-            "coverLink": "",
-            "language": "",
-            "ratingAverage": ""
-        }]
 
         try:
             if isbn:
@@ -60,22 +50,27 @@ class FetchBookInformation(object):
                 if len(ret) > 0:
                     # Prepare the answer back
                     for idx, value in enumerate(ret):
-                        self.response = [{
-                            "successOnRequest": True,
-                            "errorCode": ValidationCodes.SUCCESS,
-                            "title": ret[idx]["title"],
-                            "author": ret[idx]["author"],
-                            "publisher": ret[idx]["publisher"],
-                            "isbn": ret[idx]["isbn"],
-                            "pagesQty": ret[idx]["pagesQty"],
-                            "description": ret[idx]["description"],
-                            "link": ret[idx]["link"],
-                            "genres": ret[idx]["genres"],
-                            "coverType": ret[idx]["coverType"],
-                            "coverLink": ret[idx]["coverLink"],
-                            "language": ret[idx]["language"],
-                            "ratingAverage": ret[idx]["ratingAverage"]
-                        }]
+                        self.response = [
+                            {
+                                "successOnRequest": True,
+                                "errorCode": ValidationCodes.SUCCESS,
+                                "bookInfo": {
+
+                                    "title": ret[idx]["title"],
+                                    "author": ret[idx]["author"],
+                                    "publisher": ret[idx]["publisher"],
+                                    "isbn": ret[idx]["isbn"],
+                                    "pagesQty": ret[idx]["pagesQty"],
+                                    "description": ret[idx]["description"],
+                                    "link": ret[idx]["link"],
+                                    "genres": ret[idx]["genres"],
+                                    "coverType": ret[idx]["coverType"],
+                                    "coverLink": ret[idx]["coverLink"],
+                                    "language": ret[idx]["language"],
+                                    "ratingAverage": ret[idx]["ratingAverage"]
+                                }
+                            }
+                        ]
 
         except Exception as e:
             # If something wrong happens, raise an Internal ser error
@@ -88,28 +83,10 @@ class FetchBookInformation(object):
             return self.response, self.code
 
     @isbn_checker
-    def on_internet(self, isbn=''):
+    def on_internet(self, isbn):
         """
-        Fetch book information given an ISBN code on the internet.
+        Retrieve information about a Book remote.
         """
-
-        # Make the default answer
-        self.response = [{
-            "successOnRequest": False,
-            "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
-            "title": "",
-            "author": "",
-            "publisher": "",
-            "isbn": "",
-            "pagesQty": "",
-            "description": "",
-            "link": "",
-            "genres": "",
-            "coverType": "",
-            "coverLink": "",
-            "language": "",
-            "ratingAverage": ""
-        }]
 
         try:
             if isbn:
@@ -117,79 +94,86 @@ class FetchBookInformation(object):
                 ret = self.__good_reads(isbn)
                 if len(ret) > 0:
                     # Create the new book Schema
-                    book = [{
-                        "title": ret["title"],
-                        "author": ret["author"],
-                        "publisher": ret["publisher"],
-                        "isbn": ret["isbn"],
-                        "pagesQty": ret["pagesQty"],
-                        "description": ret["description"],
-                        "link": ret["link"],
-                        "genres": "",
-                        "coverType": "",
-                        "coverLink": ret["coverLink"],
-                        "favoriteCount": "",
-                        "language": ret["language"],
-                        "publicationDate": "",
-                        "similar": [
-                            {
-                                "bookId": ""
-                            }
-                        ],
-                        "ratingAverage": "0.0",
-                        "ratingDetails": [
-                            {
-                                "rating": "5",
-                                "ratingCount": "0"
-                            },
-                            {
-                                "rating": "4",
-                                "ratingCount": "0"
-                            },
-                            {
-                                "rating": "3",
-                                "ratingCount": "0"
-                            },
-                            {
-                                "rating": "2",
-                                "ratingCount": "0"
-                            },
-                            {
-                                "rating": "1",
-                                "ratingCount": "0"
-                            }
-                        ],
-                        "reviewsCount": "0",
-                        "reviews": [
-                            {
-                                "reviewerId": "",
-                                "reviewerRating": "",
-                                "reviewerComment": ""
-                            }
-                        ]
-                    }]
+                    book = [
+                        {
+                            "title": ret["title"],
+                            "author": ret["author"],
+                            "publisher": ret["publisher"],
+                            "isbn": ret["isbn"],
+                            "pagesQty": ret["pagesQty"],
+                            "description": ret["description"],
+                            "link": ret["link"],
+                            "genres": "",
+                            "coverType": "",
+                            "coverLink": ret["coverLink"],
+                            "language": ret["language"],
+                            "ratingAverage": "0.0",
+                            "favoriteCount": "",
+                            "publicationDate": "",
+                            "similar": [
+                                {
+                                    "bookId": ""
+                                }
+                            ],
+                            "ratingDetails": [
+                                {
+                                    "rating": "5",
+                                    "ratingCount": "0"
+                                },
+                                {
+                                    "rating": "4",
+                                    "ratingCount": "0"
+                                },
+                                {
+                                    "rating": "3",
+                                    "ratingCount": "0"
+                                },
+                                {
+                                    "rating": "2",
+                                    "ratingCount": "0"
+                                },
+                                {
+                                    "rating": "1",
+                                    "ratingCount": "0"
+                                }
+                            ],
+                            "reviewsCount": "0",
+                            "reviews": [
+                                {
+                                    "reviewerId": "",
+                                    "reviewerRating": "",
+                                    "reviewerComment": ""
+                                }
+                            ]
+                        }
+                    ]
 
                     # Save on Database
                     added = mongo.db.library.insert_many(book)
                     if not added:
                         raise Exception('The database have failed to add the new book to database.')
 
-                    self.response = [{
-                        "successOnRequest": True,
-                        "errorCode": ValidationCodes.SUCCESS,
-                        "title": ret["title"],
-                        "author": ret["author"],
-                        "publisher": ret["publisher"],
-                        "isbn": ret["isbn"],
-                        "pagesQty": ret["pagesQty"],
-                        "description": ret["description"],
-                        "link": ret["link"],
-                        "genres": "",
-                        "coverType": "",
-                        "coverLink": ret["coverLink"],
-                        "language": ret["language"],
-                        "ratingAverage": ""
-                    }]
+                    self.response = [
+                        {
+                            "successOnRequest": True,
+                            "errorCode": ValidationCodes.SUCCESS,
+                            "bookInfo":
+                                {
+                                    "title": ret["title"],
+                                    "author": ret["author"],
+                                    "publisher": ret["publisher"],
+                                    "isbn": ret["isbn"],
+                                    "pagesQty": ret["pagesQty"],
+                                    "description": ret["description"],
+                                    "link": ret["link"],
+                                    "genres": "",
+                                    "coverType": "",
+                                    "coverLink": ret["coverLink"],
+                                    "language": ret["language"],
+                                    "ratingAverage": "0.0"
+                                }
+                        }
+                    ]
 
         except Exception as e:
             # If something wrong happens, raise an Internal ser error
@@ -250,6 +234,7 @@ class FetchBookInformation(object):
             language = book.language_code if book.language_code is not None else '-'
             pages_qty = book.num_pages if book.num_pages is not None else '0'
 
+            # Scrap the book cover link
             headers = {
                 'dnt': '1',
                 'upgrade-insecure-requests': '1',
@@ -267,7 +252,7 @@ class FetchBookInformation(object):
 
             raw = requests.get(book.link, headers=headers).content
             soup = BeautifulSoup(raw, 'html.parser', from_encoding='UTF-8')
-            tag = soup.find("img", {"id": "coverImage"})
+            cover_link = soup.find("img", {"id": "coverImage"})
 
             info = {
 
@@ -276,7 +261,7 @@ class FetchBookInformation(object):
                 "publisher": publisher,
                 "isbn": book.isbn13,
                 "pagesQty": pages_qty,
-                "coverLink": tag.attrs['src'],
+                "coverLink": cover_link.attrs['src'],
                 "description": description,
                 "language": language,
                 "link": book.link

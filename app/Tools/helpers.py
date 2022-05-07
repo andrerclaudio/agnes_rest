@@ -1,9 +1,9 @@
 """
 Support functions.
 """
+import logging
 # Build-in modules
 from functools import wraps
-import logging
 
 # Installed modules
 import isbnlib
@@ -28,7 +28,7 @@ def isbn_checker(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         """
-        This function is going to check whether the ISBN is valid or return ''.
+        This method is going to check whether the ISBN is valid or not.
         """
 
         try:

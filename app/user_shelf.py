@@ -1,14 +1,15 @@
 # Build-in modules
-from datetime import datetime
-from bson.objectid import ObjectId
 import logging
+from datetime import datetime
 
 # Installed modules
 import pytz
+from bson.objectid import ObjectId
 
-# Local modules
-from app.connectors import mongo
 from app.Tools.helpers import isbn_checker
+# Local modules
+from app.book_format import BookBasicInformation
+from app.connectors import mongo
 from app.error_codes import ValidationCodes
 
 # Printing object
@@ -27,7 +28,7 @@ class UserShelf(object):
         self.code = 200
 
     @isbn_checker
-    def add_new_book(self, isbn=''):
+    def add_new_book(self, isbn):
         """
         Add a new book to user Shelf given an ISBN code
         """
@@ -44,9 +45,13 @@ class UserShelf(object):
             if isbn:
                 # Check whether the given Isbn is already active (Reading ou Paused) or not.
                 active_books, _ = self.current_readings()
-                if isbn not in [active_isbn['isbn'] for active_isbn in active_books]:
+
+                book_list = [book_info['bookInfo'] for book_info in active_books]
+
+                if isbn not in [isbn_code['isbn'] for isbn_code in book_list]:
                     # Find the book by ISBN.
-                    ret = list(mongo.db.library.find({'isbn': isbn}))
+                    query = {'isbn': isbn}
+                    ret = list(mongo.db.library.find(query))
                     if len(ret) > 0:
                         book_id = str(ret[0]['_id'])
                         # Mount the New Reading Schema.
@@ -109,30 +114,27 @@ class UserShelf(object):
         """
 
         # Make the default answer
-        self.response = [{
-            "successOnRequest": False,
-            "errorCode": ValidationCodes.NO_ACTIVE_OR_PAUSED_READING_WAS_FOUND,
-            "readingInProgress": False,
-            "readingPaused": False,
-            "readingCanceled": False,
-            "readingFinished": False,
-            "title": "",
-            "author": "",
-            "publisher": "",
-            "isbn": "",
-            "pagesQty": "",
-            "coverLink": ""
-        }]
+        self.response = [
+            {
+                "successOnRequest": False,
+                "errorCode": ValidationCodes.NO_ACTIVE_OR_PAUSED_READING_WAS_FOUND,
+                "readingInProgress": False,
+                "readingPaused": False,
+                "readingCanceled": False,
+                "readingFinished": False,
+                "bookInfo": BookBasicInformation.bookBasicInformation
+            }
+        ]
 
         try:
             # Fetch readings in Progress or Paused.
             query = {"$or": [{'readingInProgress': True}, {'readingPaused': True}]}
             query_resp = list(mongo.db.users_shelf.find(query))
-            # Check if the query get results
+            # Check if the query returned results
             if len(query_resp) > 0:
-                # Fetch those books details by book ID.
+                # Iterate over the books details by book ID.
                 book_details = []
-                for idx, value in enumerate(query_resp):
+                for value in query_resp:
                     ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])}))
                     book_details.extend(ret)
                 # Make sure a book was found
@@ -147,12 +149,15 @@ class UserShelf(object):
                             "readingPaused": value["readingPaused"],
                             "readingCanceled": value["readingCanceled"],
                             "readingFinished": value["readingFinished"],
-                            "title": book_details[idx]["title"],
-                            "author": book_details[idx]["author"],
-                            "publisher": book_details[idx]["publisher"],
-                            "isbn": book_details[idx]["isbn"],
-                            "pagesQty": book_details[idx]["pagesQty"],
-                            "coverLink": book_details[idx]["coverLink"]
+                            "bookInfo":
+                                {
+                                    "title": book_details[idx]["title"],
+                                    "author": book_details[idx]["author"],
+                                    "publisher": book_details[idx]["publisher"],
+                                    "isbn": book_details[idx]["isbn"],
+                                    "pagesQty": book_details[idx]["pagesQty"],
+                                    "coverLink": book_details[idx]["coverLink"]
+                                }
                         }
                         self.response.append(info)
 

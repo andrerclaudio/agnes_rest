@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     """
-    Start Flask application and Initialize MongoDB.
+    Start Flask application and Initialize MongoDB instance.
     """
     # Place where app is defined
     app = Flask(__name__, instance_relative_config=False)
