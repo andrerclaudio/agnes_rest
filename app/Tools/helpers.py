@@ -1,8 +1,5 @@
-"""
-Support functions.
-"""
-import logging
 # Build-in modules
+import logging
 from functools import wraps
 
 # Installed modules

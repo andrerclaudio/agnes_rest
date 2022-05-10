@@ -8,9 +8,9 @@ import logging
 # Installed modules
 from flask import jsonify, request
 
+# Local modules
 from app.book_information import RetrieveBookInformation
 from app.error_codes import ValidationCodes
-# Local modules
 from app.user_shelf import UserShelf
 
 # Printing object

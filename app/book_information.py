@@ -7,9 +7,9 @@ import os
 import requests
 from bs4 import BeautifulSoup
 
+# Local modules
 from app.GoodReads.client import GoodReadsClient
 from app.Tools.helpers import isbn_checker
-# Local modules
 from app.book_format import BookFullInformation
 from app.connectors import mongo
 from app.error_codes import ValidationCodes
@@ -267,6 +267,9 @@ class RetrieveBookInformation(object):
                 "link": book.link
 
             }
+
+            # encoded_string = base64.b64encode(raw)
+            # added = mongo.db.covers.insert_many([{"image": encoded_string}])
 
         except Exception as e:
             logger.exception('{}'.format(e), exc_info=False)

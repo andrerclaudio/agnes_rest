@@ -10,15 +10,13 @@ gunicorn
 flask-talisman
 flask_seasurf
 forex-python
-APScheduler
 requests
 PyJWT
-Flask-HTTPAuth
 flask_login
 pymongo[srv]
-Flask-PyMongo
 pytz
 beautifulsoup4
 isbnlib
 xmltodict
 rauth
+Pillow
