@@ -13,7 +13,7 @@ class BookFullInformation(dict):
         "link": "",
         "genres": "",
         "coverType": "",
-        "coverLink": "",
+        "coverPic": "",
         "language": "",
         "ratingAverage": ""
 
@@ -31,6 +31,6 @@ class BookBasicInformation(dict):
         "publisher": "",
         "isbn": "",
         "pagesQty": "",
-        "coverLink": "",
+        "coverPic": "",
 
     }

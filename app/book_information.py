@@ -8,6 +8,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from bson.objectid import ObjectId
+from flask import json
 
 # Local modules
 from app.GoodReads.client import GoodReadsClient
@@ -46,12 +47,20 @@ class RetrieveBookInformation(object):
 
         try:
             if isbn:
+                books_covers = []
                 # Find the book by ISBN.
                 ret = list(mongo.db.library.find({'isbn': isbn}))
                 # Make sure query find a book.
                 if len(ret) > 0:
                     # Prepare the answer back
                     for idx, value in enumerate(ret):
+                        # Fetch book cover
+                        query = {'name': ObjectId(value['_id'])}
+                        r = list(mongo.db.covers.find(query))[0]
+                        pic = r["data"].decode("utf-8")
+                        book_cover_picture = json.dumps(pic)
+                        books_covers.append(book_cover_picture)
+
                         self.response = [
                             {
                                 "successOnRequest": True,
@@ -67,7 +76,7 @@ class RetrieveBookInformation(object):
                                     "link": ret[idx]["link"],
                                     "genres": ret[idx]["genres"],
                                     "coverType": ret[idx]["coverType"],
-                                    "coverLink": ret[idx]["coverLink"],
+                                    "coverPic": books_covers[idx],
                                     "language": ret[idx]["language"],
                                     "ratingAverage": ret[idx]["ratingAverage"]
                                 }
@@ -75,7 +84,7 @@ class RetrieveBookInformation(object):
                         ]
 
         except Exception as e:
-            # If something wrong happens, raise an Internal ser error
+            # If something wrong happens, raise an Internal server error
             self.response = []
             # Internal server error
             self.code = 500
@@ -158,16 +167,20 @@ class RetrieveBookInformation(object):
                     # Save the book Cover on Database
                     file_name = added.inserted_ids[0]
                     response = requests.get(ret["coverLink"])
-                    encoded_string = base64.b64encode(response.content)
+                    book_cover_picture = base64.b64encode(response.content)
                     added = mongo.db.covers.insert_many([
                         {
                             "name": ObjectId(file_name),
-                            "data": encoded_string
+                            "data": book_cover_picture
                         }
                     ])
                     if not added:
                         # TODO Remove the book information from Database
                         raise Exception('The database have failed to add the new book to database.')
+
+                    # Adjust the book Cover Picture format
+                    pic = book_cover_picture.decode("utf-8")
+                    book_cover_picture = json.dumps(pic)
 
                     self.response = [
                         {
@@ -184,7 +197,7 @@ class RetrieveBookInformation(object):
                                     "link": ret["link"],
                                     "genres": "",
                                     "coverType": "",
-                                    "coverLink": ret["coverLink"],
+                                    "coverPic": book_cover_picture,
                                     "language": ret["language"],
                                     "ratingAverage": "0.0"
                                 }
@@ -192,7 +205,7 @@ class RetrieveBookInformation(object):
                     ]
 
         except Exception as e:
-            # If something wrong happens, raise an Internal ser error
+            # If something wrong happens, raise an Internal server error
             self.response = []
             # Internal server error
             self.code = 500

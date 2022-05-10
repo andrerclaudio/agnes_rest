@@ -1,11 +1,11 @@
 # Build-in modules
-import base64
 import logging
 from datetime import datetime
 
 # Installed modules
 import pytz
 from bson.objectid import ObjectId
+from flask import json
 
 # Local modules
 from app.Tools.helpers import isbn_checker
@@ -46,9 +46,9 @@ class UserShelf(object):
             if isbn:
                 # Check whether the given Isbn is already active (Reading ou Paused) or not.
                 active_books, _ = self.current_readings()
-
+                # List all active readings
                 book_list = [book_info['bookInfo'] for book_info in active_books]
-
+                # Check the given one is one of them
                 if isbn not in [isbn_code['isbn'] for isbn_code in book_list]:
                     # Find the book by ISBN.
                     query = {'isbn': isbn}
@@ -90,6 +90,8 @@ class UserShelf(object):
                         }]
                         # Created
                         self.code = 201
+                    else:
+                        raise Exception('The given book as not previous added on Library!')
                 else:
                     # Make the default answer
                     self.response = [{
@@ -100,7 +102,7 @@ class UserShelf(object):
                     }]
 
         except Exception as e:
-            # If something wrong happens, raise an Internal ser error
+            # If something wrong happens, raise an Internal server error
             self.response = []
             # Internal server error
             self.code = 500
@@ -135,14 +137,16 @@ class UserShelf(object):
             if len(query_resp) > 0:
                 # Iterate over the books details by book ID.
                 book_details = []
+                books_covers = []
                 for value in query_resp:
                     # Fetch book information
                     ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])}))
                     book_details.extend(ret)
                     # Fetch book cover
                     ret = list(mongo.db.covers.find({'name': ObjectId(value['targetBookId'])}))[0]
-                    pic = ret["data"]
-                    pic_64 = base64.b64decode(pic)
+                    pic = ret["data"].decode("utf-8")
+                    book_cover_picture = json.dumps(pic)
+                    books_covers.append(book_cover_picture)
 
                 # Make sure a book was found
                 if len(book_details) > 0:
@@ -163,13 +167,13 @@ class UserShelf(object):
                                     "publisher": book_details[idx]["publisher"],
                                     "isbn": book_details[idx]["isbn"],
                                     "pagesQty": book_details[idx]["pagesQty"],
-                                    "coverLink": book_details[idx]["coverLink"]
+                                    "coverPic": books_covers[idx]
                                 }
                         }
                         self.response.append(info)
 
         except Exception as e:
-            # If something wrong happens, raise an Internal ser error
+            # If something wrong happens, raise an Internal server error
             self.response = []
             # Internal server error
             self.code = 500
