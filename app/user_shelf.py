@@ -1,4 +1,5 @@
 # Build-in modules
+import base64
 import logging
 from datetime import datetime
 
@@ -135,8 +136,14 @@ class UserShelf(object):
                 # Iterate over the books details by book ID.
                 book_details = []
                 for value in query_resp:
+                    # Fetch book information
                     ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])}))
                     book_details.extend(ret)
+                    # Fetch book cover
+                    ret = list(mongo.db.covers.find({'name': ObjectId(value['targetBookId'])}))[0]
+                    pic = ret["data"]
+                    pic_64 = base64.b64decode(pic)
+
                 # Make sure a book was found
                 if len(book_details) > 0:
                     # Prepare the answer back

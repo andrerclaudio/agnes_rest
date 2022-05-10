@@ -1,4 +1,5 @@
 # Build-in modules
+import base64
 import configparser
 import logging
 import os
@@ -6,6 +7,7 @@ import os
 # Installed modules
 import requests
 from bs4 import BeautifulSoup
+from bson.objectid import ObjectId
 
 # Local modules
 from app.GoodReads.client import GoodReadsClient
@@ -148,9 +150,23 @@ class RetrieveBookInformation(object):
                         }
                     ]
 
-                    # Save on Database
+                    # Save the book Information on Database
                     added = mongo.db.library.insert_many(book)
                     if not added:
+                        raise Exception('The database have failed to add the new book to database.')
+
+                    # Save the book Cover on Database
+                    file_name = added.inserted_ids[0]
+                    response = requests.get(ret["coverLink"])
+                    encoded_string = base64.b64encode(response.content)
+                    added = mongo.db.covers.insert_many([
+                        {
+                            "name": ObjectId(file_name),
+                            "data": encoded_string
+                        }
+                    ])
+                    if not added:
+                        # TODO Remove the book information from Database
                         raise Exception('The database have failed to add the new book to database.')
 
                     self.response = [
@@ -267,9 +283,6 @@ class RetrieveBookInformation(object):
                 "link": book.link
 
             }
-
-            # encoded_string = base64.b64encode(raw)
-            # added = mongo.db.covers.insert_many([{"image": encoded_string}])
 
         except Exception as e:
             logger.exception('{}'.format(e), exc_info=False)
