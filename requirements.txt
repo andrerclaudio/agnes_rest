@@ -20,3 +20,6 @@ isbnlib
 xmltodict
 rauth
 Pillow
+APScheduler
+Flask-HTTPAuth
+Flask-PyMongo
