@@ -7,7 +7,6 @@ import os
 # Installed modules
 import requests
 from bs4 import BeautifulSoup
-from bson.objectid import ObjectId
 from flask import json
 
 from app.Book.book_format import BookFullInformation
@@ -54,9 +53,8 @@ class RetrieveBookInformation(object):
                     # Prepare the answer back
                     for idx, value in enumerate(ret):
                         # Fetch book cover
-                        query = {'name': ObjectId(value['_id'])}
-                        r = list(mongo.db.covers.find(query))[0]
-                        pic = r["data"].decode("utf-8")
+                        r = ret[0]
+                        pic = r["rawCoverPic"].decode("utf-8")
                         book_cover_picture = json.dumps(pic)
                         books_covers.append(book_cover_picture)
 
@@ -103,6 +101,11 @@ class RetrieveBookInformation(object):
                 # Find on GoodReads
                 ret = self.__good_reads(isbn)
                 if len(ret) > 0:
+
+                    # Parse the Cover picture format
+                    response = requests.get(ret["coverLink"])
+                    book_cover_picture = base64.b64encode(response.content)
+
                     # Create the new book Schema
                     book = [
                         {
@@ -116,6 +119,7 @@ class RetrieveBookInformation(object):
                             "genres": "",
                             "coverType": "",
                             "coverLink": ret["coverLink"],
+                            "rawCoverPic": book_cover_picture,
                             "language": ret["language"],
                             "ratingAverage": "0.0",
                             "favoriteCount": "",
@@ -161,20 +165,6 @@ class RetrieveBookInformation(object):
                     # Save the book Information on Database
                     added = mongo.db.library.insert_many(book)
                     if not added:
-                        raise Exception('The database have failed to add the new book to database.')
-
-                    # Save the book Cover on Database
-                    file_name = added.inserted_ids[0]
-                    response = requests.get(ret["coverLink"])
-                    book_cover_picture = base64.b64encode(response.content)
-                    added = mongo.db.covers.insert_many([
-                        {
-                            "name": ObjectId(file_name),
-                            "data": book_cover_picture
-                        }
-                    ])
-                    if not added:
-                        # TODO Remove the book information from Database
                         raise Exception('The database have failed to add the new book to database.')
 
                     # Adjust the book Cover Picture format
