@@ -5,27 +5,9 @@ import os
 from functools import wraps
 
 # Installed modules
-import jwt
+# from cryptography.fernet import Fernet
 # from werkzeug.security import generate_password_hash, check_password_hash
 from flask import jsonify, request
-from flask_httpauth import HTTPTokenAuth  # HTTPBasicAuth
-from jwt import InvalidTokenError
-
-# Basic Authentication - User and Password
-# auth = HTTPBasicAuth()
-auth = HTTPTokenAuth(scheme='Bearer')
-
-
-# users = {
-#     "john": generate_password_hash("hello"),
-#     "susan": generate_password_hash("bye")
-# }
-
-
-# @auth.verify_password
-# def verify_password(username, password):
-#     if username in users and check_password_hash(users.get(username), password):
-#         return username
 
 
 def authorization(f):
@@ -35,24 +17,39 @@ def authorization(f):
         if 'CLOUD' not in os.environ:
             config = configparser.ConfigParser()
             config.read_file(open('config.ini'))
-            # If the application is running locally, use config.ini anf if not, use environment variables
-            agnes_secret = config['AGNES_SECRET']['secret']
+            # Agnes API key
+            # key = config['AGNES_KEY']['key']
+            # enc = Fernet(key)
+            # Agnes API secret
+            secret = config['AGNES_SECRET']['secret']
+            # token = f.encrypt(secret)
         else:
-            agnes_secret = os.environ['AGNES_SECRET']
+            # Agnes API key
+            # key = os.environ['AGNES_KEY']
+            # enc = Fernet(key)
+            # Agnes API secret
+            secret = os.environ['AGNES_SECRET']
+            # token = f.encrypt(secret)
 
         try:
             header = str(request.headers.get('Authorization')).split(' ')
-            token = header[0]
-            payload = jwt.decode(token, agnes_secret, algorithms=['HS256'])
-            return f(payload)
+            if len(header) > 1:
+                token = header[1]
+            else:
+                raise Exception('API token not valid!')
 
-        except InvalidTokenError as e:
+            if not token or token != secret:
+                raise Exception('API token not valid!')
+            else:
+                return f(*args, **kwargs)
+
+        except Exception as e:
             logging.exception(e, exc_info=False)
             message = {'message': 'Invalid Credentials.'}
             # Making the message looks good
             resp = jsonify(message)
             # Sending OK response
-            resp.status_code = 403
+            resp.status_code = 401
             return resp
 
     return decorated

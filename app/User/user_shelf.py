@@ -7,10 +7,9 @@ import pytz
 from bson.objectid import ObjectId
 from flask import json
 
+from app.Book.book_format import BookBasicInformation
 # Local modules
 from app.Tools.helpers import isbn_checker
-from app.book_format import BookBasicInformation
-from app.connectors import mongo
 from app.error_codes import ValidationCodes
 
 # Printing object
@@ -29,7 +28,7 @@ class UserShelf(object):
         self.code = 200
 
     @isbn_checker
-    def add_new_book(self, isbn):
+    def add_new_book(self, isbn, mongo):
         """
         Add a new book to user Shelf given an ISBN code
         """
@@ -45,7 +44,7 @@ class UserShelf(object):
         try:
             if isbn:
                 # Check whether the given Isbn is already active (Reading ou Paused) or not.
-                active_books, _ = self.current_readings()
+                active_books, _ = self.current_readings(mongo=mongo)
                 # List all active readings
                 book_list = [book_info['bookInfo'] for book_info in active_books]
                 # Check the given one is one of them
@@ -111,7 +110,7 @@ class UserShelf(object):
         finally:
             return self.response, self.code
 
-    def current_readings(self):
+    def current_readings(self, mongo):
         """
         Fetch the active or paused readings.
         """

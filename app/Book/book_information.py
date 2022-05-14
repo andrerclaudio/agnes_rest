@@ -10,11 +10,10 @@ from bs4 import BeautifulSoup
 from bson.objectid import ObjectId
 from flask import json
 
+from app.Book.book_format import BookFullInformation
 # Local modules
 from app.GoodReads.client import GoodReadsClient
 from app.Tools.helpers import isbn_checker
-from app.book_format import BookFullInformation
-from app.connectors import mongo
 from app.error_codes import ValidationCodes
 
 # Printing object
@@ -40,7 +39,7 @@ class RetrieveBookInformation(object):
         self.code = 200
 
     @isbn_checker
-    def on_local_library(self, isbn):
+    def on_local_library(self, isbn, mongo):
         """
         Fetch book information given an ISBN code on local Library.
         """
@@ -94,7 +93,7 @@ class RetrieveBookInformation(object):
             return self.response, self.code
 
     @isbn_checker
-    def on_internet(self, isbn):
+    def on_internet(self, isbn, mongo):
         """
         Retrieve information about a Book remote.
         """
@@ -235,7 +234,7 @@ class RetrieveBookInformation(object):
 
             good_reads = GoodReadsClient(good_reads_key, good_reads_secret)
             # ISBN related functions
-            book_info = self.__isbn_lookup(self, isbn, good_reads)
+            book_info = self.__isbn_lookup(isbn, good_reads)
             # Check for a valid information
             if len(book_info) > 0:
                 # Return the book info
@@ -248,7 +247,7 @@ class RetrieveBookInformation(object):
             return rsp
 
     @staticmethod
-    def __isbn_lookup(self, isbn, good_reads):
+    def __isbn_lookup(isbn, good_reads):
         """
         Fetch in Good Reads for a given ISBN code and scrapy for its cover image.
         """

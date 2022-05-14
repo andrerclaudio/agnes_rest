@@ -4,21 +4,9 @@ from functools import wraps
 
 # Installed modules
 import isbnlib
-from flask import request
 
 # Printing object
 logger = logging.getLogger(__name__)
-
-
-def fetch_args():
-    """
-    # Return args inside a request.
-    """
-    values = {}
-    for k, v in request.args.items():
-        values[k] = v
-
-    return values
 
 
 def isbn_checker(f):
@@ -39,9 +27,9 @@ def isbn_checker(f):
                 isbn = isbnlib.to_isbn13(val)
 
             if isbnlib.is_isbn13(isbn):
-                return f(*args, isbn)
+                return f(*args, isbn, kwargs['mongo'])
             else:
-                return f(*args, '')
+                return f(*args, '', '')
 
         except Exception as e:
             logging.exception(e, exc_info=False)
