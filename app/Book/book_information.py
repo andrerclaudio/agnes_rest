@@ -9,8 +9,8 @@ import requests
 from bs4 import BeautifulSoup
 from flask import json
 
-from app.Book.book_format import BookFullInformation
 # Local modules
+from app.Book.book_format import BookFullInformation
 from app.GoodReads.client import GoodReadsClient
 from app.Tools.helpers import isbn_checker
 from app.error_codes import ValidationCodes
@@ -25,7 +25,6 @@ class RetrieveBookInformation(object):
     """
 
     def __init__(self):
-        # Make the default answer
         # Make the default answer
         self.response = [
             {

@@ -7,8 +7,8 @@ import pytz
 from bson.objectid import ObjectId
 from flask import json
 
-from app.Book.book_format import BookBasicInformation
 # Local modules
+from app.Book.book_format import BookBasicInformation
 from app.Tools.helpers import isbn_checker
 from app.error_codes import ValidationCodes
 
@@ -44,7 +44,7 @@ class UserShelf(object):
         try:
             if isbn:
                 # Check whether the given Isbn is already active (Reading ou Paused) or not.
-                active_books, _ = self.current_readings(mongo=mongo, few_info=True)
+                active_books, _ = self.current_readings(mongo=mongo, only_isbn=True)
                 # List all active readings
                 book_list = [book_info['bookInfo'] for book_info in active_books]
                 # Check the given one is one of them
@@ -110,7 +110,7 @@ class UserShelf(object):
         finally:
             return self.response, self.code
 
-    def current_readings(self, mongo, few_info=False):
+    def current_readings(self, mongo, only_isbn=False):
         """
         Fetch the active or paused readings.
         """
@@ -130,7 +130,7 @@ class UserShelf(object):
 
         try:
 
-            if few_info:
+            if only_isbn:
                 # Fetch readings in Progress or Paused.
                 query_resp = list(mongo.db.users_shelf.find({"$or": [{'readingInProgress': True},
                                                                      {'readingPaused': True}]},
