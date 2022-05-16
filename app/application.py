@@ -1,11 +1,9 @@
 # Build-in modules
 import logging
 
-# Installed modules
 from flask import jsonify, request
 
 from app.Book.book_information import RetrieveBookInformation
-# Local modules
 from app.Tools.auth import authorization
 from app.User.user_shelf import UserShelf
 from app.connectors import CreateApp

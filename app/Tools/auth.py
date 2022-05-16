@@ -4,7 +4,6 @@ import logging
 import os
 from functools import wraps
 
-# Installed modules
 # from cryptography.fernet import Fernet
 # from werkzeug.security import generate_password_hash, check_password_hash
 from flask import jsonify, request

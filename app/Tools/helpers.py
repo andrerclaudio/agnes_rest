@@ -2,10 +2,8 @@
 import logging
 from functools import wraps
 
-# Installed modules
 import isbnlib
 
-# Printing object
 logger = logging.getLogger(__name__)
 
 

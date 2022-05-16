@@ -3,12 +3,10 @@ import configparser
 import logging
 import os
 
-# Installed modules
 from flask import Flask
 from flask_httpauth import HTTPTokenAuth
 from flask_pymongo import PyMongo
 
-# Printing object
 logger = logging.getLogger(__name__)
 
 

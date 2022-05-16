@@ -4,12 +4,10 @@ import configparser
 import logging
 import os
 
-# Installed modules
 import requests
 from bs4 import BeautifulSoup
 from flask import json
 
-# Local modules
 from app.Book.book_format import BookFullInformation
 from app.GoodReads.client import GoodReadsClient
 from app.Tools.helpers import isbn_checker
