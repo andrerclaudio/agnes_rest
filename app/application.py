@@ -5,6 +5,7 @@ from flask import jsonify, request
 
 from app.Book.book_information import RetrieveBookInformation
 from app.Tools.auth import authorization
+from app.User.unknown_user import UnknownUser
 from app.User.user_shelf import UserShelf
 from app.connectors import CreateApp
 from app.error_codes import ValidationCodes
@@ -26,7 +27,6 @@ mongoDB = application.mongo
 
 
 @app.route('/', methods=['GET'])
-@authorization
 def index():
     """Application is alive"""
     # This route is used when the incoming user is not registered yet.
@@ -62,6 +62,40 @@ def page_not_found(e):
     return resp
 
 
+@app.route('/unknown', methods=['GET', 'POST'])
+def unknown_user_digest():
+    """
+    Unknown user digest.
+    """
+
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
+    try:
+        # Parse the Post type
+        values = {}
+        for argument, function in request.args.items():
+            values[argument] = function
+
+        # Route the given Post
+        if values['function'] == 'validateEmail':
+            unknown = UnknownUser()
+            ret, code = unknown.validate_email(
+                email=values['email'], mongo=mongoDB)
+
+    except Exception as e:
+        logger.exception(e, exc_info=False)
+
+    finally:
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending the response
+        resp.status_code = code
+        # Returning the object
+        return resp
+
+
 @app.route('/post', methods=['POST'])
 @authorization
 def post_dispatcher():
@@ -83,7 +117,8 @@ def post_dispatcher():
         # Route the given Post
         if values['function'] == 'addNewBook':
             user = UserShelf()
-            ret, code = user.add_new_book(isbn=values['isbnCode'], mongo=mongoDB)
+            ret, code = user.add_new_book(
+                isbn=values['isbnCode'], mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -123,11 +158,13 @@ def query_dispatcher():
 
         elif values['function'] == 'fetchBookInfo':
             # Fetch the info about a book given an ISBN code
-            ret, code = RetrieveBookInformation().on_local_library(isbn=values['isbn'], mongo=mongoDB)
+            ret, code = RetrieveBookInformation().on_local_library(
+                isbn=values['isbn'], mongo=mongoDB)
             if code == 200 and not ret[0]['successOnRequest'] and \
                     ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
                 # In fails on local Library, go to internet
-                ret, code = RetrieveBookInformation().on_internet(isbn=values['isbn'], mongo=mongoDB)
+                ret, code = RetrieveBookInformation().on_internet(
+                    isbn=values['isbn'], mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)

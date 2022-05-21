@@ -20,7 +20,7 @@ class CreateApp(object):
         self.app = Flask(__name__, instance_relative_config=False)
 
         if 'CLOUD' not in os.environ:
-            # If the application is running locally, use config.ini anf if not, set environment variables# MongoDB
+            # If the application is running locally, use config.ini anf if not, set environment variables
             config = configparser.ConfigParser()
             config.read_file(open('config.ini'))
             # Agnes API secret
