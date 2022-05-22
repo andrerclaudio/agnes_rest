@@ -81,8 +81,10 @@ def unknown_user_digest():
         # Route the given Post
         if values['function'] == 'validateEmail':
             unknown = UnknownUser()
-            ret, code = unknown.validate_email(
-                email=values['email'], mongo=mongoDB)
+            ret, code = unknown.validate_email(email=values['email'], mongo=mongoDB)
+        elif values['function'] == 'validateCode':
+            unknown = UnknownUser()
+            ret, code = unknown.validate_code(code=values['code'], email=values['email'], mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
