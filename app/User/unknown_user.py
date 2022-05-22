@@ -1,6 +1,5 @@
 # Build-in modules
 import logging
-# Installed modules
 import random
 
 # Local modules
