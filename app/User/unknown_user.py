@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Maximum value to generate
 MAX_RANDOM_VALUE = 999999
+n_digits = 6
 
 
 class UnknownUser(object):
@@ -46,8 +47,8 @@ class UnknownUser(object):
                 ret = list(mongo.db.users_info.find(query))
                 # Check if the email is already in use
                 if not len(ret):
-                    # Generate a random code
-                    code = str(random.randint(0, MAX_RANDOM_VALUE))
+                    # Generate a random code and fill with zeros left
+                    code = str(random.randint(0, MAX_RANDOM_VALUE)).rjust(n_digits, '0')
                     # Verify the email
                     if send_email(email, code):
 
