@@ -84,7 +84,11 @@ def unknown_user_digest():
             ret, code = unknown.validate_email(email=values['email'], mongo=mongoDB)
         elif values['function'] == 'validateCode':
             unknown = UnknownUser()
-            ret, code = unknown.validate_code(code=values['code'], email=values['email'], mongo=mongoDB)
+            ret, code = unknown.validate_code(verif_code=values['code'], email=values['email'], mongo=mongoDB)
+        elif values['function'] == 'createUser':
+            unknown = UnknownUser()
+            data = request.get_json()
+            ret, code = unknown.create_user(form=data, email=values['email'], mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -160,13 +164,11 @@ def query_dispatcher():
 
         elif values['function'] == 'fetchBookInfo':
             # Fetch the info about a book given an ISBN code
-            ret, code = RetrieveBookInformation().on_local_library(
-                isbn=values['isbn'], mongo=mongoDB)
-            if code == 200 and not ret[0]['successOnRequest'] and \
-                    ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
-                # In fails on local Library, go to internet
-                ret, code = RetrieveBookInformation().on_internet(
-                    isbn=values['isbn'], mongo=mongoDB)
+            ret, code = RetrieveBookInformation().on_local_library(isbn=values['isbn'], mongo=mongoDB)
+            if code == 200:
+                if ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
+                    # In fails on local Library, go to internet
+                    ret, code = RetrieveBookInformation().on_internet(isbn=values['isbn'], mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)

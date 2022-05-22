@@ -54,7 +54,7 @@ class UserShelf(object):
                     # Find the book by ISBN.
                     ret = list(mongo.db.library.find(
                         {'isbn': isbn}, {'isbn', 'title'}))
-                    if len(ret) > 0:
+                    if len(ret):
                         book_id = str(ret[0]['_id'])
                         # Mount the New Reading Schema.
                         info = [{
@@ -138,7 +138,7 @@ class UserShelf(object):
                 query_resp = list(mongo.db.users_shelf.find({"$or": [{'readingInProgress': True},
                                                                      {'readingPaused': True}]},
                                                             {'targetBookId'}))
-                if len(query_resp) > 0:
+                if len(query_resp):
                     # Iterate over the books details by book ID.
                     book_details = []
                     for value in query_resp:
@@ -147,7 +147,7 @@ class UserShelf(object):
                                                          {'isbn'}))
                         book_details.extend(ret)
                         # Make sure a book was found
-                        if len(book_details) > 0:
+                        if len(book_details):
                             # Prepare the answer back
                             self.response.clear()
                             for idx, _ in enumerate(query_resp):
@@ -165,7 +165,7 @@ class UserShelf(object):
                                  {'readingPaused': True}]}
                 query_resp = list(mongo.db.users_shelf.find(query))
                 # Check if the query returned results
-                if len(query_resp) > 0:
+                if len(query_resp):
                     # Iterate over the books details by book ID.
                     book_details = []
                     books_covers = []
@@ -181,7 +181,7 @@ class UserShelf(object):
                         books_covers.append(book_cover_picture)
 
                     # Make sure a book was found
-                    if len(book_details) > 0:
+                    if len(book_details):
                         # Prepare the answer back
                         self.response.clear()
                         for idx, value in enumerate(query_resp):

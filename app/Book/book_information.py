@@ -46,7 +46,7 @@ class RetrieveBookInformation(object):
                 # Find the book by ISBN.
                 ret = list(mongo.db.library.find({'isbn': isbn}))
                 # Make sure query find a book.
-                if len(ret) > 0:
+                if len(ret):
                     # Prepare the answer back
                     for idx, value in enumerate(ret):
                         # Fetch book cover
@@ -97,7 +97,7 @@ class RetrieveBookInformation(object):
             if isbn:
                 # Find on GoodReads
                 ret = self.__good_reads(isbn)
-                if len(ret) > 0:
+                if len(ret):
 
                     # Parse the Cover picture format
                     response = requests.get(ret["coverLink"])
@@ -224,7 +224,7 @@ class RetrieveBookInformation(object):
             # ISBN related functions
             book_info = self.__isbn_lookup(isbn, good_reads)
             # Check for a valid information
-            if len(book_info) > 0:
+            if len(book_info):
                 # Return the book info
                 rsp = book_info
 

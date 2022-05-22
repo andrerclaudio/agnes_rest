@@ -1,6 +1,10 @@
 # Build-in modules
 import logging
 import random
+from datetime import datetime
+
+# Installed modules
+import pytz
 
 # Local modules
 from app.Tools.email import send_email
@@ -62,7 +66,7 @@ class UnknownUser(object):
                                 "attemptsToValidate": "0",
                                 "password": "",
                                 "userName": "",
-                                "userId": "",
+                                "userNickName": "",
                                 "userShelfId": "",
                                 "lastLogin": "",
                                 "accountCreated": "",
@@ -117,7 +121,7 @@ class UnknownUser(object):
         finally:
             return self.response, self.code
 
-    def validate_code(self, code, email, mongo):
+    def validate_code(self, verif_code, email, mongo):
         """
         Validate the given code.
         """
@@ -139,9 +143,9 @@ class UnknownUser(object):
                 }]
 
                 # Sanity check
-                if str(code).isdigit():
+                if str(verif_code).isdigit():
                     # Then compare the codes
-                    if code == user['lastCodeSent']:
+                    if verif_code == user['lastCodeSent']:
                         # The email was sent.
                         self.response = [{
                             'successOnRequest': True,
@@ -151,9 +155,77 @@ class UnknownUser(object):
                         }]
                         attempts = "0"
 
+                    # Update the attempts to validate the email
                     mongo.db.users_info.update_one(
                         {"userEmail": user['userEmail']},
                         {"$set": {"attemptsToValidate": attempts}})
+            else:
+                # Something went wrong with the email.
+                raise Exception('Something went wrong with the stored email.')
+
+        except Exception as e:
+            # If something wrong happens, raise an Internal server error
+            self.response = []
+            # Internal server error
+            self.code = 500
+            logger.exception(e, exc_info=False)
+
+        finally:
+            return self.response, self.code
+
+    def create_user(self, form, email, mongo):
+        """
+        Create the user.
+        """
+
+        try:
+            query = {'userEmail': email}
+            ret = list(mongo.db.users_info.find(query))
+            # Check if the email is there
+            if len(ret):
+                # Mount the New User Shelf Schema
+                info = [
+                    {
+                        "shelfName": "",
+                        "lastUpdate": "",
+                        "booksQty": 0,
+                        "description": "",
+                        "books": [],
+                    }
+                ]
+                # Store the New user schema on the user info.
+                added = mongo.db.users_shelf.insert_many(info)
+                if not added:
+                    raise Exception('The database have failed to create the new schema.')
+
+                # Fetch some information
+                user = ret[0]
+                index = str(added.inserted_ids[0])
+                # Generate the new user data
+                t = datetime.now(tz=pytz.UTC)
+                mongo.db.users_info.update_one(
+                    {"userEmail": user['userEmail']},
+                    {"$set": {
+
+                        "emailConfirmed": True,
+                        "password": form['password'],
+                        "userName": form['userName'],
+                        "userNickName": "",
+                        "userShelfId": index,
+                        "lastLogin": t,
+                        "accountCreated": t,
+
+                    }})
+
+                # The user was created.
+                self.code = 201
+                self.response = [{
+                    "successOnRequest": True,
+                    "errorCode": ValidationCodes.SUCCESS,
+                    "token": "",
+                    "userId": str(user['_id']),
+                }]
+
             else:
                 # Something went wrong with the email.
                 raise Exception('Something went wrong with the stored email.')
