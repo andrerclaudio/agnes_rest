@@ -79,7 +79,7 @@ class UnknownUser(object):
 
                         # Store the New user schema on the user info.
                         added = mongo.db.users_info.insert_many(info)
-                        if not added:
+                        if not added.acknowledged:
                             raise Exception('The database have failed to add the email to user info.')
 
                         # The email was sent.
@@ -107,6 +107,8 @@ class UnknownUser(object):
                         mongo.db.users_info.update_one(
                             {"userEmail": user['userEmail']},
                             {"$set": {"attemptsToValidate": attempts}})
+
+                        # TODO What happens if update fails
 
             else:
                 raise Exception('Invalid email format.')
@@ -159,6 +161,8 @@ class UnknownUser(object):
                     mongo.db.users_info.update_one(
                         {"userEmail": user['userEmail']},
                         {"$set": {"attemptsToValidate": attempts}})
+
+                    # TODO What happens if update fails
             else:
                 # Something went wrong with the email.
                 raise Exception('Something went wrong with the stored email.')
@@ -195,7 +199,7 @@ class UnknownUser(object):
                 ]
                 # Store the New user schema on the user info.
                 added = mongo.db.users_shelf.insert_many(info)
-                if not added:
+                if not added.acknowledged:
                     raise Exception('The database have failed to create the new schema.')
 
                 # Fetch some information
@@ -216,6 +220,8 @@ class UnknownUser(object):
                         "accountCreated": t,
 
                     }})
+
+                # TODO What happens if update fails
 
                 # The user was created.
                 self.code = 201

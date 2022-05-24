@@ -36,7 +36,7 @@ def send_email(destination, code):
 
         %s
         """ % (sender, destination, 'Agnes', text)
-
+        # TODO Improve the email format. Let it more Readable
         # Log in to server using secure context and send email
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:

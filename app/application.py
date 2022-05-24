@@ -1,10 +1,12 @@
 # Build-in modules
 import logging
 
+from bson.objectid import ObjectId
+# Installed modules
 from flask import jsonify, request
 
+# Local modules
 from app.Book.book_information import RetrieveBookInformation
-from app.Tools.auth import authorization
 from app.User.unknown_user import UnknownUser
 from app.User.user_shelf import UserShelf
 from app.connectors import CreateApp
@@ -24,6 +26,20 @@ application = CreateApp()
 app = application.app
 auth = application.auth
 mongoDB = application.mongo
+
+
+@auth.verify_password
+def verify_password(username, password):
+    # Fetch the specif Shelf ID
+    query_resp = list(mongoDB.db.users_info.find({'userName': username}, {'password', '_id'}))
+    stored_user_id = str(query_resp[0]['_id'])
+    stored_user_pass = query_resp[0]['password']
+
+    if len(query_resp):
+        # The user exist
+        if password == stored_user_pass:
+            # the password is correct and the ID is returned
+            return stored_user_id
 
 
 @app.route('/', methods=['GET'])
@@ -103,7 +119,7 @@ def unknown_user_digest():
 
 
 @app.route('/post', methods=['POST'])
-@authorization
+@auth.login_required
 def post_dispatcher():
     """
     Reply on Post requests.
@@ -113,18 +129,26 @@ def post_dispatcher():
     # Default answer and Not implemented error.
     code = 501
     ret = []
+    # Fetch the UserId from the login
+    user_id = auth.current_user()
 
     try:
-        # Parse the Post type
-        values = {}
-        for argument, function in request.args.items():
-            values[argument] = function
+        # Fetch the specif Shelf ID
+        query_resp = list(mongoDB.db.users_info.find({'_id': ObjectId(user_id)}, {'userShelfId'}))
 
-        # Route the given Post
-        if values['function'] == 'addNewBook':
-            user = UserShelf()
-            ret, code = user.add_new_book(
-                isbn=values['isbnCode'], mongo=mongoDB)
+        if len(query_resp):
+            # Identify the user shelf
+            user_shelf_id = query_resp[0]['userShelfId']
+
+            # Parse the Post type
+            values = {}
+            for argument, function in request.args.items():
+                values[argument] = function
+
+            # Route the given Post
+            if values['function'] == 'addNewBook':
+                user = UserShelf()
+                ret, code = user.add_new_book(user_shelf_id, isbn=values['isbnCode'], mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -139,7 +163,7 @@ def post_dispatcher():
 
 
 @app.route('/query', methods=['GET'])
-@authorization
+@auth.login_required
 def query_dispatcher():
     """
     Reply on Query requests.
@@ -149,26 +173,34 @@ def query_dispatcher():
     # Default answer and Not implemented error.
     code = 501
     ret = []
+    # Fetch the UserId from the login
+    user_id = auth.current_user()
 
     try:
-        # Parse the Query type
-        values = {}
-        for argument, function in request.args.items():
-            values[argument] = function
+        # Fetch the specif Shelf ID
+        query_resp = list(mongoDB.db.users_info.find({'_id': ObjectId(user_id)}, {'userShelfId'}))
+        if len(query_resp):
+            # Identify the user shelf
+            user_shelf_id = query_resp[0]['userShelfId']
 
-        # Route the given query
-        if values['function'] == 'currentReadings':
-            # Fetch the User current readings
-            user = UserShelf()
-            ret, code = user.current_readings(mongo=mongoDB)
+            # Parse the Query type
+            values = {}
+            for argument, function in request.args.items():
+                values[argument] = function
 
-        elif values['function'] == 'fetchBookInfo':
-            # Fetch the info about a book given an ISBN code
-            ret, code = RetrieveBookInformation().on_local_library(isbn=values['isbn'], mongo=mongoDB)
-            if code == 200:
-                if ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
-                    # In fails on local Library, go to internet
-                    ret, code = RetrieveBookInformation().on_internet(isbn=values['isbn'], mongo=mongoDB)
+            # Route the given query
+            if values['function'] == 'currentReadings':
+                # Fetch the User current readings
+                user = UserShelf()
+                ret, code = user.current_readings(user_shelf_id, mongo=mongoDB)
+
+            elif values['function'] == 'fetchBookInfo':
+                # Fetch the info about a book given an ISBN code
+                ret, code = RetrieveBookInformation().on_local_library(isbn=values['isbn'], mongo=mongoDB)
+                if code == 200:
+                    if ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
+                        # In fails on local Library, go to internet
+                        ret, code = RetrieveBookInformation().on_internet(isbn=values['isbn'], mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)

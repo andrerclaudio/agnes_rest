@@ -161,9 +161,8 @@ class RetrieveBookInformation(object):
 
                     # Save the book Information on Database
                     added = mongo.db.library.insert_many(book)
-                    if not added:
-                        raise Exception(
-                            'The database have failed to add the new book to database.')
+                    if not added.acknowledged:
+                        raise Exception('The database have failed to add the new book to database.')
 
                     # Adjust the book Cover Picture format
                     pic = book_cover_picture.decode("utf-8")
