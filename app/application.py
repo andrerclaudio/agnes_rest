@@ -35,6 +35,10 @@ def verify_password(username, password):
     stored_user_id = str(query_resp[0]['_id'])
     stored_user_pass = query_resp[0]['password']
 
+    # TODO Crypt the data on rest
+    # TODO Hash the password before sending
+    # TODO Register the login time
+
     if len(query_resp):
         # The user exist
         if password == stored_user_pass:

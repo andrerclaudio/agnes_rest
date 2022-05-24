@@ -221,6 +221,7 @@ class UnknownUser(object):
 
                     }})
 
+                # TODO Make sure the userName is unique
                 # TODO What happens if update fails
 
                 # The user was created.
