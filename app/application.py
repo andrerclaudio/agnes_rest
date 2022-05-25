@@ -82,33 +82,19 @@ def page_not_found(e):
     return resp
 
 
-@app.route('/unknown', methods=['GET', 'POST'])
-def unknown_user_digest():
+@app.route('/unknown/validate_email', methods=['GET'])
+def unknown_validate_email():
     """
-    Unknown user digest.
+    Receive the email from a new possibly user.
     """
-
     # Default answer and Not implemented error.
     code = 501
     ret = []
 
     try:
-        # Parse the Post type
-        values = {}
-        for argument, function in request.args.items():
-            values[argument] = function
-
-        # Route the given Post
-        if values['function'] == 'validateEmail':
-            unknown = UnknownUser()
-            ret, code = unknown.validate_email(email=values['email'], mongo=mongoDB)
-        elif values['function'] == 'validateCode':
-            unknown = UnknownUser()
-            ret, code = unknown.validate_code(verif_code=values['code'], email=values['email'], mongo=mongoDB)
-        elif values['function'] == 'createUser':
-            unknown = UnknownUser()
-            data = request.get_json()
-            ret, code = unknown.create_user(form=data, email=values['email'], mongo=mongoDB)
+        user_email = request.values.get('email')
+        unknown = UnknownUser()
+        ret, code = unknown.validate_email(email=user_email, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -122,37 +108,20 @@ def unknown_user_digest():
         return resp
 
 
-@app.route('/post', methods=['POST'])
-@auth.login_required
-def post_dispatcher():
+@app.route('/unknown/validate_code', methods=['GET'])
+def unknown_user_validate_code():
     """
-    Reply on Post requests.
-    /post
+    Validate the verification code sent to the proposal email.
     """
-
     # Default answer and Not implemented error.
     code = 501
     ret = []
-    # Fetch the UserId from the login
-    user_id = auth.current_user()
 
     try:
-        # Fetch the specif Shelf ID
-        query_resp = list(mongoDB.db.users_info.find({'_id': ObjectId(user_id)}, {'userShelfId'}))
-
-        if len(query_resp):
-            # Identify the user shelf
-            user_shelf_id = query_resp[0]['userShelfId']
-
-            # Parse the Post type
-            values = {}
-            for argument, function in request.args.items():
-                values[argument] = function
-
-            # Route the given Post
-            if values['function'] == 'addNewBook':
-                user = UserShelf()
-                ret, code = user.add_new_book(user_shelf_id, isbn=values['isbnCode'], mongo=mongoDB)
+        user_code = request.values.get('code')
+        user_email = request.values.get('email')
+        unknown = UnknownUser()
+        ret, code = unknown.validate_code(verif_code=user_code, email=user_email, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -166,45 +135,121 @@ def post_dispatcher():
         return resp
 
 
-@app.route('/query', methods=['GET'])
-@auth.login_required
-def query_dispatcher():
+@app.route('/unknown/create_user', methods=['POST'])
+def unknown_user_create_user():
     """
-    Reply on Query requests.
-    /query
+    Create the new user.
     """
-
     # Default answer and Not implemented error.
     code = 501
     ret = []
-    # Fetch the UserId from the login
+
+    try:
+        data = request.get_json()
+        user_email = request.values.get('email')
+        unknown = UnknownUser()
+        ret, code = unknown.create_user(form=data, email=user_email, mongo=mongoDB)
+
+    except Exception as e:
+        logger.exception(e, exc_info=False)
+
+    finally:
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending the response
+        resp.status_code = code
+        # Returning the object
+        return resp
+
+
+@app.route('/user/shelf/add_new_book', methods=['POST'])
+@auth.login_required
+def user_add_new_books():
+    """
+    Add a new book to a given user shelf.
+    """
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
+    # Fetch the UserId from the login data
     user_id = auth.current_user()
 
     try:
         # Fetch the specif Shelf ID
         query_resp = list(mongoDB.db.users_info.find({'_id': ObjectId(user_id)}, {'userShelfId'}))
+        # Make sure the given use has a shelf
         if len(query_resp):
             # Identify the user shelf
             user_shelf_id = query_resp[0]['userShelfId']
+            isbn_code = request.values.get('isbnCode')
+            ret, code = UserShelf().add_new_book(user_shelf_id, isbn=isbn_code, mongo=mongoDB)
 
-            # Parse the Query type
-            values = {}
-            for argument, function in request.args.items():
-                values[argument] = function
+    except Exception as e:
+        logger.exception(e, exc_info=False)
 
-            # Route the given query
-            if values['function'] == 'currentReadings':
-                # Fetch the User current readings
-                user = UserShelf()
-                ret, code = user.current_readings(user_shelf_id, mongo=mongoDB)
+    finally:
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending the response
+        resp.status_code = code
+        # Returning the object
+        return resp
 
-            elif values['function'] == 'fetchBookInfo':
-                # Fetch the info about a book given an ISBN code
-                ret, code = RetrieveBookInformation().on_local_library(isbn=values['isbn'], mongo=mongoDB)
-                if code == 200:
-                    if ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
-                        # In fails on local Library, go to internet
-                        ret, code = RetrieveBookInformation().on_internet(isbn=values['isbn'], mongo=mongoDB)
+
+@app.route('/user/shelf/current_readings', methods=['GET'])
+@auth.login_required
+def user_current_readings():
+    """
+    Fetch the current reading from a given user.
+    """
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
+    # Fetch the UserId from the login data
+    user_id = auth.current_user()
+
+    try:
+        # Fetch the specif Shelf ID
+        query_resp = list(mongoDB.db.users_info.find({'_id': ObjectId(user_id)}, {'userShelfId'}))
+        # Make sure the given use has a shelf
+        if len(query_resp):
+            # Identify the user shelf
+            user_shelf_id = query_resp[0]['userShelfId']
+            # Fetch the User current readings
+            ret, code = UserShelf().current_readings(user_shelf_id, mongo=mongoDB)
+
+    except Exception as e:
+        logger.exception(e, exc_info=False)
+
+    finally:
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending the response
+        resp.status_code = code
+        # Returning the object
+        return resp
+
+
+@app.route('/library/fetch_book_information', methods=['GET'])
+@auth.login_required
+def library_fetch_book_information():
+    """
+    Fetch some book information based on ISBN code.
+    """
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
+    try:
+        isbn_code = request.values.get('isbnCode')
+        # Fetch the info about a book given an ISBN code
+        ret, code = RetrieveBookInformation().on_local_library(isbn=isbn_code, mongo=mongoDB)
+        if code == 200:
+            if ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
+                # In fails on local Library, go to internet
+                ret, code = RetrieveBookInformation().on_internet(isbn=isbn_code, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
