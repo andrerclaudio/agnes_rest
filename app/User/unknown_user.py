@@ -78,7 +78,7 @@ class UnknownUser(object):
                             'successOnRequest': True,
                             "errorCode": ValidationCodes.SUCCESS,
                             "userEmail": email,
-                            "attemptsToValidate": "0"
+                            "attemptsToValidate": 0
                         }]
 
                     else:
@@ -90,7 +90,7 @@ class UnknownUser(object):
                         'successOnRequest': False,
                         "errorCode": ValidationCodes.EMAIL_HAS_ALREADY_BEEN_ADDED_TO_APPLICATION,
                         "userEmail": "",
-                        "attemptsToValidate": "0"
+                        "attemptsToValidate": 0
                     }]
             else:
                 raise Exception('Invalid email format.')
@@ -118,11 +118,10 @@ class UnknownUser(object):
                 user = ret[0]
 
                 # Add 1 to validation attempts
-                attempts = str(int(user["attemptsToValidate"]) + 1)
+                attempts = user["attemptsToValidate"]
 
                 # Check if the verification code is checked already
                 if not user['emailConfirmed']:
-
                     # Sanity check
                     if str(verif_code).isdecimal():
                         # Then compare the verification codes
@@ -131,7 +130,7 @@ class UnknownUser(object):
                             # Update the attempts to validate the email
                             updated = mongo.db.users_info.update_one(
                                 {"userEmail": user['userEmail']},
-                                {"$set": {"attemptsToValidate": "0",
+                                {"$set": {"attemptsToValidate": 0,
                                           "emailConfirmed": True
                                           }})
 
@@ -143,9 +142,8 @@ class UnknownUser(object):
                                 'successOnRequest': True,
                                 "errorCode": ValidationCodes.SUCCESS,
                                 "userEmail": user['userEmail'],
-                                "attemptsToValidate": "0"
+                                "attemptsToValidate": 0
                             }]
-
                         else:
                             # Update the attempts to validate the email
                             updated = mongo.db.users_info.update_one(
@@ -161,25 +159,20 @@ class UnknownUser(object):
                                 "userEmail": user['userEmail'],
                                 "attemptsToValidate": attempts
                             }]
-
                     else:
-
                         self.response = [{
                             'successOnRequest': False,
                             "errorCode": ValidationCodes.WRONG_VALIDATION_CODE,
                             "userEmail": user['userEmail'],
                             "attemptsToValidate": attempts
                         }]
-
                 else:
-
                     self.response = [{
                         'successOnRequest': False,
                         "errorCode": ValidationCodes.EMAIL_ALREADY_CHECKED,
                         "userEmail": user['userEmail'],
                         "attemptsToValidate": attempts
                     }]
-
             else:
                 # Something went wrong with the email.
                 raise Exception('Something went wrong with the stored email.')
@@ -244,7 +237,7 @@ class UnknownUser(object):
                 self.response = [{
                     "successOnRequest": True,
                     "errorCode": ValidationCodes.SUCCESS,
-                    "lastAccess": str(int(t.timestamp())),
+                    "lastAccess": int(t.timestamp()),
                     "userId": str(user['_id']),
                 }]
 
