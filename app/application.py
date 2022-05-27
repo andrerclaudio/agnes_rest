@@ -82,8 +82,8 @@ def page_not_found(e):
     return resp
 
 
-@app.route('/unknown/validate_email', methods=['GET'])
-def unknown_validate_email():
+@app.route('/unknown/validate_email', methods=['POST'])
+def unknown_user_validate_email():
     """
     Receive the email from a new possibly user.
     """

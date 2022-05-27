@@ -38,7 +38,7 @@ class UnknownUser(object):
             email = str(email).lower().replace(" ", "")
             # Sanity check
             if email.isascii():
-                ret = list(mongo.db.users_info.find({'userEmail': email}))
+                ret = list(mongo.db.users_info.find({'userEmail': email}, {'emailConfirmed', 'userEmail'}))
                 # Check if the email is already in use
                 if not len(ret):
                     # Generate a random code and fill with zeros left
@@ -86,12 +86,43 @@ class UnknownUser(object):
                         raise Exception('Something went wrong sending the email.')
 
                 else:
-                    self.response = [{
-                        'successOnRequest': False,
-                        "errorCode": ValidationCodes.EMAIL_HAS_ALREADY_BEEN_ADDED_TO_APPLICATION,
-                        "userEmail": "",
-                        "attemptsToValidate": 0
-                    }]
+
+                    if ret[0]['emailConfirmed']:
+
+                        self.response = [{
+                            'successOnRequest': False,
+                            "errorCode": ValidationCodes.EMAIL_HAS_ALREADY_BEEN_ADDED_TO_APPLICATION,
+                            "userEmail": "",
+                            "attemptsToValidate": 0
+                        }]
+
+                    else:
+
+                        # Generate a random code and fill with zeros left
+                        code = str(random.randint(0, MAX_RANDOM_VALUE)).rjust(n_digits, '0')
+                        # Verify the email
+                        if send_email(email, code):
+
+                            # Update the attempts to validate the email
+                            updated = mongo.db.users_info.update_one(
+                                {"userEmail": ret[0]['userEmail']},
+                                {"$set": {'lastCodeSent': code}})
+
+                            if not updated.acknowledged:
+                                raise Exception('The database have failed to update the information.')
+
+                            # The email was sent.
+                            self.response = [{
+                                'successOnRequest': True,
+                                "errorCode": ValidationCodes.SUCCESS,
+                                "userEmail": email,
+                                "attemptsToValidate": 0
+                            }]
+
+                        else:
+                            # Something went wrong with the email.
+                            raise Exception('Something went wrong sending the email.')
+
             else:
                 raise Exception('Invalid email format.')
 
