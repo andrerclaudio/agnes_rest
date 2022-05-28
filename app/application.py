@@ -29,9 +29,9 @@ mongoDB = application.mongo
 
 
 @auth.verify_password
-def verify_password(username, password):
+def verify_password(email, password):
     # Fetch the specif Shelf ID
-    query_resp = list(mongoDB.db.users_info.find({'userName': username}, {'password', '_id'}))
+    query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id'}))
     stored_user_id = str(query_resp[0]['_id'])
     stored_user_pass = query_resp[0]['password']
 
@@ -145,10 +145,12 @@ def unknown_user_create_user():
     ret = []
 
     try:
-        data = request.get_json()
+        # data = request.get_json()
+        # user_email = request.values.get('email')
+        user_password = request.values.get('password')
         user_email = request.values.get('email')
         unknown = UnknownUser()
-        ret, code = unknown.create_user(form=data, email=user_email, mongo=mongoDB)
+        ret, code = unknown.create_user(password=user_password, email=user_email, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)

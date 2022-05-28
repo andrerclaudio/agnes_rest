@@ -129,8 +129,8 @@ class UnknownUser(object):
         except Exception as e:
             # If something wrong happens, raise an Internal server error
             self.response = []
-            # Service Unavailable error
-            self.code = 503
+            # Internal server error
+            self.code = 500
             logger.exception(e, exc_info=False)
 
         finally:
@@ -218,7 +218,7 @@ class UnknownUser(object):
         finally:
             return self.response, self.code
 
-    def create_user(self, form, email, mongo):
+    def create_user(self, password, email, mongo):
         """
         Create the user.
         """
@@ -252,8 +252,7 @@ class UnknownUser(object):
                     {"$set": {
 
                         "accountActivated": True,
-                        "password": form['password'],
-                        "userName": form['userName'],
+                        "password": password,
                         "userShelfId": index,
                         "lastAccess": t,
                         "accountCreated": t,
