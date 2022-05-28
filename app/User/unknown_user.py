@@ -129,8 +129,8 @@ class UnknownUser(object):
         except Exception as e:
             # If something wrong happens, raise an Internal server error
             self.response = []
-            # Internal server error
-            self.code = 500
+            # Service Unavailable error
+            self.code = 503
             logger.exception(e, exc_info=False)
 
         finally:
