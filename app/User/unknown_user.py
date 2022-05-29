@@ -74,6 +74,7 @@ class UnknownUser(object):
                             raise Exception('The database have failed to add the email to user info.')
 
                         # The email was sent.
+                        self.code = 201
                         self.response = [{
                             'successOnRequest': True,
                             "errorCode": ValidationCodes.SUCCESS,
@@ -112,6 +113,7 @@ class UnknownUser(object):
                                 raise Exception('The database have failed to update the information.')
 
                             # The email was sent.
+                            self.code = 201
                             self.response = [{
                                 'successOnRequest': True,
                                 "errorCode": ValidationCodes.SUCCESS,
