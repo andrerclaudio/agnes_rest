@@ -27,7 +27,7 @@ class UnknownUser(object):
         # Make the default answer
         self.response = []
         # The code is Ok but more details is in self.response
-        self.code = 200
+        self.code = 201
 
     def validate_email(self, email, mongo):
         """
@@ -74,7 +74,6 @@ class UnknownUser(object):
                             raise Exception('The database have failed to add the email to user info.')
 
                         # The email was sent.
-                        self.code = 201
                         self.response = [{
                             'successOnRequest': True,
                             "errorCode": ValidationCodes.SUCCESS,
@@ -90,6 +89,7 @@ class UnknownUser(object):
 
                     if ret[0]['emailConfirmed']:
 
+                        self.code = 200
                         self.response = [{
                             'successOnRequest': False,
                             "errorCode": ValidationCodes.EMAIL_HAS_ALREADY_BEEN_ADDED_TO_APPLICATION,
@@ -113,7 +113,6 @@ class UnknownUser(object):
                                 raise Exception('The database have failed to update the information.')
 
                             # The email was sent.
-                            self.code = 201
                             self.response = [{
                                 'successOnRequest': True,
                                 "errorCode": ValidationCodes.SUCCESS,
