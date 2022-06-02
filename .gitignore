@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# .idea files
+.idea/
+
+# Restricted files
+/config.ini

@@ -1,2 +1,1 @@
-# agnes
-Agnes project
+# Agnes
