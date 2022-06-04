@@ -268,7 +268,7 @@ class UnknownUser(object):
                 self.response = [{
                     "successOnRequest": True,
                     "errorCode": ValidationCodes.SUCCESS,
-                    "lastAccess": int(t.timestamp()),
+                    "lastAccess": str(int(t.timestamp())),
                     "userId": str(user['_id']),
                 }]
 
