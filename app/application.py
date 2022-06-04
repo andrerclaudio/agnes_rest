@@ -32,14 +32,14 @@ mongoDB = application.mongo
 def verify_password(email, password):
     # Fetch the specif Shelf ID
     query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id'}))
-    stored_user_id = str(query_resp[0]['_id'])
-    stored_user_pass = query_resp[0]['password']
 
     # TODO Crypt the data on rest
-    # TODO Hash the password before sending
     # TODO Register the login time
 
+    # Check if the email is in Database
     if len(query_resp):
+        stored_user_id = str(query_resp[0]['_id'])
+        stored_user_pass = query_resp[0]['password']
         # The user exist
         if password == stored_user_pass:
             # the password is correct and the ID is returned

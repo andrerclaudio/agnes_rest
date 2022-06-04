@@ -32,16 +32,8 @@ class UserShelf(object):
         """
         Add a new book to user Shelf given an ISBN code
         """
-
-        # Make the default answer
-        self.response = [{
-            'successOnRequest': False,
-            "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
-            'isbn': '',
-            'title': ''
-        }]
-
         try:
+            # Check ISBN sanity
             if isbn:
                 # Check whether the given Isbn is already active (Reading ou Paused) or not.
                 active_books, _ = self.current_readings(user_shelf_id, mongo=mongo, only_isbn=True)
@@ -108,6 +100,13 @@ class UserShelf(object):
                         'isbn': '',
                         'title': ''
                     }]
+            else:
+                self.response = [{
+                    'successOnRequest': False,
+                    "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE,
+                    'isbn': '',
+                    'title': ''
+                }]
 
         except Exception as e:
             # If something wrong happens, raise an Internal server error
