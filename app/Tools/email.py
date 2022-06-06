@@ -62,11 +62,11 @@ def send_email(destination, code):
             payload = json.dumps({
                 "recipients": [
                     {
-                        "Code": code,
+                        "email": destination,
                     }
                 ],
                 "title": "Title",
-                "html": "Body"
+                "html": code
             })
             headers = {
                 'x-trustifi-key': os.environ['TRUSTIFI_KEY'],
