@@ -17,6 +17,8 @@ def send_email(destination, code):
     Send the validation email.
     """
 
+    ret = False
+
     if 'CLOUD' not in os.environ:
         # If the application is running locally, use config.ini anf if not, set environment variables
         config = configparser.ConfigParser()
@@ -24,8 +26,6 @@ def send_email(destination, code):
         # Sender email and account password
         sender = config['SENDER']['from']
         password = config['SENDER_PASSWORD']['psw']
-
-        ret = False
 
         try:
             text = "Code:  {}".format(code)
@@ -53,9 +53,6 @@ def send_email(destination, code):
             return ret
 
     else:
-
-        ret = False
-
         try:
             url = "https://be.trustifi.com/api/i/v1/email"
 
