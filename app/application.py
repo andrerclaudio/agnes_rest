@@ -30,20 +30,22 @@ mongoDB = application.mongo
 
 @auth.verify_password
 def verify_password(email, password):
-    # Fetch the specif Shelf ID
-    query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id'}))
+    if request.is_secure:
 
-    # TODO Crypt the data on rest
-    # TODO Register the login time
+        # Fetch the specif Shelf ID
+        query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id'}))
 
-    # Check if the email is in Database
-    if len(query_resp):
-        stored_user_id = str(query_resp[0]['_id'])
-        stored_user_pass = query_resp[0]['password']
-        # The user exist
-        if password == stored_user_pass:
-            # the password is correct and the ID is returned
-            return stored_user_id
+        # TODO Crypt the data on rest
+        # TODO Register the login time
+
+        # Check if the email is in Database
+        if len(query_resp):
+            stored_user_id = str(query_resp[0]['_id'])
+            stored_user_pass = query_resp[0]['password']
+            # The user exist
+            if password == stored_user_pass:
+                # the password is correct and the ID is returned
+                return stored_user_id
 
 
 @app.route('/', methods=['GET'])
