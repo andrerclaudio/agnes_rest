@@ -19,21 +19,22 @@ def send_email(destination, code):
 
     ret = False
 
-    if 'CLOUD' not in os.environ:
-        # If the application is running locally, use config.ini anf if not, set environment variables
-        config = configparser.ConfigParser()
-        config.read_file(open('config.ini'))
-        # Sender email and account password
-        sender = config['SENDER']['from']
-        password = config['SENDER_PASSWORD']['psw']
+    try:
 
-        try:
+        if 'CLOUD' not in os.environ:
+            # If the application is running locally, use config.ini
+            config = configparser.ConfigParser()
+            config.read_file(open('config.ini'))
+            # Sender email and account password
+            sender = config['SENDER']['from']
+            password = config['SENDER_PASSWORD']['psw']
+
             text = "Code:  {}".format(code)
             message = """\
             From: %s
             To: %s
             Subject: %s
-
+    
             %s
             """ % (sender, destination, 'Agnes', text)
             # TODO Improve the email format. Let it more Readable
@@ -46,14 +47,8 @@ def send_email(destination, code):
 
             ret = True
 
-        except Exception as e:
-            logger.exception(e, exc_info=False)
-
-        finally:
-            return ret
-
-    else:
-        try:
+        else:
+            # If running remotely,use email Addon
             url = "https://be.trustifi.com/api/i/v1/email"
 
             payload = json.dumps({
@@ -62,9 +57,10 @@ def send_email(destination, code):
                         "email": destination,
                     }
                 ],
-                "title": "Title",
+                "title": "Agnes Code",
                 "html": code
             })
+
             headers = {
                 'x-trustifi-key': os.environ['TRUSTIFI_KEY'],
                 'x-trustifi-secret': os.environ['TRUSTIFI_SECRET'],
@@ -72,11 +68,11 @@ def send_email(destination, code):
             }
 
             response = requests.request("POST", url, headers=headers, data=payload)
-            logger.info(response)
+            logger.debug(response)
             ret = True
 
-        except Exception as e:
-            logger.exception(e, exc_info=False)
+    except Exception as e:
+        logger.exception(e, exc_info=False)
 
-        finally:
-            return ret
+    finally:
+        return ret
