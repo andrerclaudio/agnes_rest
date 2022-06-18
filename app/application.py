@@ -1,7 +1,6 @@
 # Build-in modules
 import logging
 
-from bson.objectid import ObjectId
 # Installed modules
 from flask import jsonify, request
 
@@ -31,21 +30,22 @@ mongoDB = application.mongo
 @auth.verify_password
 def verify_password(email, password):
     # Check if the connection is secure
-    if request.is_secure:
-        # Fetch the specif Shelf ID
-        query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id'}))
+    if not request.is_secure:
+        # Fetch the User ID
+        query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id', 'userShelfId'}))
 
         # TODO Crypt the data on rest
         # TODO Register the login time
 
         # Check if the email is in Database
         if len(query_resp):
-            stored_user_id = str(query_resp[0]['_id'])
-            stored_user_pass = query_resp[0]['password']
+            user_id = str(query_resp[0]['_id'])
+            user_password = query_resp[0]['password']
+            user_shelf_id = query_resp[0]['userShelfId']
             # The user exist
-            if password == stored_user_pass:
-                # the password is correct and the ID is returned
-                return stored_user_id
+            if password == user_password:
+                # the password is correct
+                return user_id, user_shelf_id
 
 
 @app.route('/', methods=['GET'])
@@ -176,18 +176,12 @@ def user_add_new_books():
     code = 501
     ret = []
 
-    # Fetch the UserId from the login data
-    user_id = auth.current_user()
+    # Fetch the User Shelf ID from the login data
+    _, user_shelf_id = auth.current_user()
 
     try:
-        # Fetch the specif Shelf ID
-        query_resp = list(mongoDB.db.users_info.find({'_id': ObjectId(user_id)}, {'userShelfId'}))
-        # Make sure the given use has a shelf
-        if len(query_resp):
-            # Identify the user shelf
-            user_shelf_id = query_resp[0]['userShelfId']
-            isbn_code = request.values.get('isbnCode')
-            ret, code = UserShelf().add_new_book(user_shelf_id, isbn=isbn_code, mongo=mongoDB)
+        isbn_code = request.values.get('isbnCode')
+        ret, code = UserShelf().add_new_book(user_shelf_id, isbn=isbn_code, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -211,18 +205,12 @@ def user_current_readings():
     code = 501
     ret = []
 
-    # Fetch the UserId from the login data
-    user_id = auth.current_user()
+    # Fetch the User Shelf ID from the login data
+    _, user_shelf_id = auth.current_user()
 
     try:
-        # Fetch the specif Shelf ID
-        query_resp = list(mongoDB.db.users_info.find({'_id': ObjectId(user_id)}, {'userShelfId'}))
-        # Make sure the given use has a shelf
-        if len(query_resp):
-            # Identify the user shelf
-            user_shelf_id = query_resp[0]['userShelfId']
-            # Fetch the User current readings
-            ret, code = UserShelf().current_readings(user_shelf_id, mongo=mongoDB)
+        # Fetch the User current readings
+        ret, code = UserShelf().current_readings(user_shelf_id, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -254,6 +242,36 @@ def library_fetch_book_information():
             if ret[0]['errorCode'] == ValidationCodes.NO_BOOK_WAS_FOUND_WITH_THE_GIVEN_ISBN_CODE:
                 # In fails on local Library, go to internet
                 ret, code = RetrieveBookInformation().on_internet(isbn=isbn_code, mongo=mongoDB)
+
+    except Exception as e:
+        logger.exception(e, exc_info=False)
+
+    finally:
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending the response
+        resp.status_code = code
+        # Returning the object
+        return resp
+
+
+@app.route('/user/shelf/change_book_status', methods=['POST'])
+@auth.login_required
+def update_book_status():
+    """
+    Update a book status on user Shelf.
+    """
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
+    # Fetch the User Shelf ID from the login data
+    _, user_shelf_id = auth.current_user()
+
+    try:
+        book_status = request.values.get('bookStatus')
+        target_book_id = request.values.get('targetBookId')
+        ret, code = UserShelf().update_reading(user_shelf_id, target_book_id, book_status, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
