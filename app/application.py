@@ -30,7 +30,7 @@ mongoDB = application.mongo
 @auth.verify_password
 def verify_password(email, password):
     # Check if the connection is secure
-    if not request.is_secure:
+    if request.is_secure:
         # Fetch the User ID
         query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id', 'userShelfId'}))
 
