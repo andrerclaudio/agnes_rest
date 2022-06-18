@@ -179,9 +179,11 @@ class UserShelf(object):
                     # Iterate over the books details by book ID.
                     book_details = []
                     books_covers = []
+                    books_target_id = []
                     for value in data:
                         # Fetch book information
                         ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])}))
+                        books_target_id.append(value['targetBookId'])
                         book_details.extend(ret)
                         # Fetch book cover
                         ret = ret[0]
@@ -208,7 +210,8 @@ class UserShelf(object):
                                         "publisher": book_details[idx]["publisher"],
                                         "isbn": book_details[idx]["isbn"],
                                         "pagesQty": book_details[idx]["pagesQty"],
-                                        "coverPic": books_covers[idx]
+                                        "coverPic": books_covers[idx],
+                                        "targetBookId": books_target_id[idx],
                                     }
                             }
                             self.response.append(info)

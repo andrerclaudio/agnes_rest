@@ -32,5 +32,6 @@ class BookBasicInformation(dict):
         "isbn": "",
         "pagesQty": "",
         "coverPic": "",
+        "targetBookId": "",
 
     }
