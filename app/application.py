@@ -271,7 +271,7 @@ def update_book_status():
     try:
         book_status = request.values.get('bookStatus')
         target_book_id = request.values.get('targetBookId')
-        ret, code = UserShelf().update_reading(user_shelf_id, target_book_id, book_status, mongo=mongoDB)
+        ret, code = UserShelf().update_book_status(user_shelf_id, target_book_id, book_status, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)

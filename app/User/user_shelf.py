@@ -339,14 +339,12 @@ class UserShelf(object):
         finally:
             return self.response, self.code
 
-    def update_reading(self, user_shelf_id, target_book_id, status, mongo):
+    def update_book_status(self, user_shelf_id, target_book_id, status, mongo):
         """
         Update the status of a book on user shelf.
         """
 
         try:
-
-            # TODO Validate the book status before changing it.
 
             if status == 'finished':
                 # Set the books as Finished
@@ -354,7 +352,15 @@ class UserShelf(object):
                     {"_id": ObjectId(user_shelf_id),
                      "books.targetBookId": target_book_id},
                     {"$set": {"books.$.readingInProgress": False,
+                              "books.$.readingPaused": False,
+                              "books.$.readingCanceled": False,
                               "books.$.readingFinished": True,
+                              }})
+
+                mongo.db.users_shelf.update_one(
+                    {"_id": ObjectId(user_shelf_id),
+                     "books.targetBookId": target_book_id},
+                    {"$set": {"books.$.sameBookCount.finishedAt": datetime.now(tz=pytz.UTC),
                               }})
 
             elif status == 'canceled':
@@ -363,7 +369,9 @@ class UserShelf(object):
                     {"_id": ObjectId(user_shelf_id),
                      "books.targetBookId": target_book_id},
                     {"$set": {"books.$.readingInProgress": False,
+                              "books.$.readingPaused": False,
                               "books.$.readingCanceled": True,
+                              "books.$.readingFinished": False,
                               }})
 
             elif status == 'paused':
@@ -373,6 +381,19 @@ class UserShelf(object):
                      "books.targetBookId": target_book_id},
                     {"$set": {"books.$.readingInProgress": False,
                               "books.$.readingPaused": True,
+                              "books.$.readingCanceled": False,
+                              "books.$.readingFinished": False,
+                              }})
+
+            elif status == 'reading':
+                # Set the books as Reading
+                updated = mongo.db.users_shelf.update_one(
+                    {"_id": ObjectId(user_shelf_id),
+                     "books.targetBookId": target_book_id},
+                    {"$set": {"books.$.readingInProgress": True,
+                              "books.$.readingPaused": False,
+                              "books.$.readingCanceled": False,
+                              "books.$.readingFinished": False,
                               }})
 
             else:
@@ -380,6 +401,9 @@ class UserShelf(object):
 
             if not updated.acknowledged:
                 raise Exception('The database have failed to update the information.')
+
+            mongo.db.users_shelf.update_one({'_id': ObjectId(user_shelf_id)},
+                                            {'$set': {'lastUpdate': datetime.now(tz=pytz.UTC)}})
 
             # Prepare the answer back
             self.response = [{
