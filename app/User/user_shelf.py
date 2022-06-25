@@ -360,7 +360,7 @@ class UserShelf(object):
                 mongo.db.users_shelf.update_one(
                     {"_id": ObjectId(user_shelf_id),
                      "books.targetBookId": target_book_id},
-                    {"$set": {"books.$.sameBookCount.finishedAt": datetime.now(tz=pytz.UTC),
+                    {"$set": {"books.$.sameBookCount.0.finishedAt": datetime.now(tz=pytz.UTC),
                               }})
 
             elif status == 'canceled':
