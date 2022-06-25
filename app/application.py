@@ -283,3 +283,32 @@ def update_book_status():
         resp.status_code = code
         # Returning the object
         return resp
+
+
+@app.route('/user/shelf/user_shelf', methods=['GET'])
+@auth.login_required
+def user_current_readings():
+    """
+    Fetch the current reading from a given user.
+    """
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
+    # Fetch the User Shelf ID from the login data
+    _, user_shelf_id = auth.current_user()
+
+    try:
+        # Fetch the User current readings
+        ret, code = UserShelf().current_readings(user_shelf_id, mongo=mongoDB)
+
+    except Exception as e:
+        logger.exception(e, exc_info=False)
+
+    finally:
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending the response
+        resp.status_code = code
+        # Returning the object
+        return resp
