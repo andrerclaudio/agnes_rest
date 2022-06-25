@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class UserShelf(object):
     """
-    Add a new reading given a ISBN.
+    User Shelf related methods.
     """
 
     def __init__(self):
@@ -36,10 +36,9 @@ class UserShelf(object):
             # Check ISBN sanity
             if isbn:
                 # Check whether the given Isbn is already active (Reading ou Paused) or not.
-                active_books, _ = self.current_readings(user_shelf_id, mongo=mongo, only_isbn=True)
-                # TODO If a book is read, add SameBookCountFlag
-                # List all active readings
-                book_list = [book_info['bookInfo'] for book_info in active_books]
+                ret, _ = self.books(user_shelf_id, 'all', mongo)
+                # List all books
+                book_list = [book_info['bookInfo'] for book_info in ret]
                 # Check the given one is one of them
                 if isbn not in [isbn_code['isbn'] for isbn_code in book_list]:
                     # Find the book by ISBN.
@@ -52,6 +51,8 @@ class UserShelf(object):
                             "readingPaused": False,
                             "readingCanceled": False,
                             "readingFinished": False,
+                            "readingInStandby": False,
+                            "wishList": False,
                             "favorite": False,
                             "lastPage": "",
                             "rating": "",
@@ -80,8 +81,6 @@ class UserShelf(object):
                         mongo.db.users_shelf.update_one({'_id': ObjectId(user_shelf_id)},
                                                         {'$set': {'lastUpdate': datetime.now(tz=pytz.UTC)}})
 
-                        # TODO What happens if any of the updates before fail
-
                         # Prepare the answer back
                         self.response = [{
                             'successOnRequest': True,
@@ -92,7 +91,7 @@ class UserShelf(object):
                         # Created
                         self.code = 201
                     else:
-                        raise Exception('The given book as not previous added on Library!')
+                        raise Exception('The ISBN must be added to application library first.')
                 else:
                     # Make the default answer
                     self.response = [{
@@ -119,7 +118,7 @@ class UserShelf(object):
         finally:
             return self.response, self.code
 
-    def current_readings(self, user_shelf_id, mongo, only_isbn=False):
+    def books(self, user_shelf_id, status, mongo):
         """
         Fetch the active or paused readings.
         """
@@ -128,7 +127,7 @@ class UserShelf(object):
         self.response = [
             {
                 "successOnRequest": False,
-                "errorCode": ValidationCodes.NO_ACTIVE_OR_PAUSED_READING_WAS_FOUND,
+                "errorCode": ValidationCodes.NO_BOOK_WAS_FOUND,
                 "readingInProgress": False,
                 "readingPaused": False,
                 "readingCanceled": False,
@@ -138,8 +137,10 @@ class UserShelf(object):
         ]
 
         try:
-            if only_isbn:
-                # Fetch readings in Progress or Paused.
+            query_resp = []
+
+            if status == 'all':
+                # Fetch all books and return only the ISBN code
                 query_resp = list(mongo.db.users_shelf.find({'_id': ObjectId(user_shelf_id)},
                                                             {'books.targetBookId'}))
 
@@ -166,168 +167,67 @@ class UserShelf(object):
                             }
                             self.response.append(info)
 
-            else:
+            elif status == 'active':
                 # Fetch readings in Progress or Paused on a given User ID
                 query_resp = list(mongo.db.users_shelf.aggregate([{'$match': {'_id': ObjectId(user_shelf_id)}},
                                                                   {'$unwind': "$books"},
                                                                   {'$match': {"$or": [
                                                                       {'books.readingInProgress': True},
-                                                                      {'books.readingPaused': True}
-                                                                  ]}}]))
+                                                                      {'books.readingPaused': True}]
+                                                                  }}]))
 
-                # Check if the query returned results
-                if len(query_resp):
-                    # Prettify the fetched data
-                    data = [i['books'] for i in query_resp]
-                    # Iterate over the books details by book ID.
-                    book_details = []
-                    books_covers = []
-                    books_target_id = []
-                    for value in data:
-                        # Fetch book information
-                        ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])}))
-                        books_target_id.append(value['targetBookId'])
-                        book_details.extend(ret)
-                        # Fetch book cover
-                        ret = ret[0]
-                        pic = ret["rawCoverPic"].decode("utf-8")
-                        book_cover_picture = json.dumps(pic)
-                        books_covers.append(book_cover_picture)
-
-                    # Make sure a book was found
-                    if len(book_details):
-                        # Prepare the answer back
-                        self.response.clear()
-                        for idx, value in enumerate(data):
-                            info = {
-                                "successOnRequest": True,
-                                "errorCode": ValidationCodes.SUCCESS,
-                                "readingInProgress": value["readingInProgress"],
-                                "readingPaused": value["readingPaused"],
-                                "readingCanceled": value["readingCanceled"],
-                                "readingFinished": value["readingFinished"],
-                                "bookInfo":
-                                    {
-                                        "title": book_details[idx]["title"],
-                                        "author": book_details[idx]["author"],
-                                        "publisher": book_details[idx]["publisher"],
-                                        "isbn": book_details[idx]["isbn"],
-                                        "pagesQty": book_details[idx]["pagesQty"],
-                                        "coverPic": books_covers[idx],
-                                        "targetBookId": books_target_id[idx],
-                                    }
-                            }
-                            self.response.append(info)
-
-        except Exception as e:
-            # If something wrong happens, raise an Internal server error
-            self.response = []
-            # Internal server error
-            self.code = 500
-            logger.exception(e, exc_info=False)
-
-        finally:
-            return self.response, self.code
-
-    def not_active_books(self, user_shelf_id, mongo, only_isbn=False):
-        """
-        Fetch the finished or canceled books.
-        """
-
-        # Make the default answer
-        self.response = [
-            {
-                "successOnRequest": False,
-                "errorCode": ValidationCodes.NO_FINISHED_OR_CANCELED_BOOK_WAS_FOUND,
-                "readingInProgress": False,
-                "readingPaused": False,
-                "readingCanceled": False,
-                "readingFinished": False,
-                "bookInfo": BookBasicInformation.bookBasicInformation
-            }
-        ]
-
-        try:
-            if only_isbn:
-                # Fetch readings in Progress or Paused.
-                query_resp = list(mongo.db.users_shelf.find({'_id': ObjectId(user_shelf_id)},
-                                                            {'books.targetBookId'}))
-
-                if len(query_resp):
-                    # Prettify the fetched data
-                    data = query_resp[0]['books']
-                    # Iterate over the books details by book ID.
-                    book_details = []
-                    for value in data:
-                        # Fetch book information
-                        ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])},
-                                                         {'isbn'}))
-                        book_details.extend(ret)
-                    # Make sure a book was found
-                    if len(book_details):
-                        # Prepare the answer back
-                        self.response.clear()
-                        for idx, _ in enumerate(data):
-                            info = {
-                                "bookInfo":
-                                    {
-                                        "isbn": book_details[idx]["isbn"],
-                                    }
-                            }
-                            self.response.append(info)
-
-            else:
-                # Fetch readings in Progress or Paused on a given User ID
+            elif status == 'notActive':
+                # Fetch readings with Canceled or Finished status
                 query_resp = list(mongo.db.users_shelf.aggregate([{'$match': {'_id': ObjectId(user_shelf_id)}},
                                                                   {'$unwind': "$books"},
                                                                   {'$match': {"$or": [
                                                                       {'books.readingCanceled': True},
-                                                                      {'books.readingFinished': True}
-                                                                  ]}}]))
+                                                                      {'books.readingFinished': True}]
+                                                                  }}]))
 
-                # Check if the query returned results
-                if len(query_resp):
-                    # Prettify the fetched data
-                    data = [i['books'] for i in query_resp]
-                    # Iterate over the books details by book ID.
-                    book_details = []
-                    books_covers = []
-                    books_target_id = []
-                    for value in data:
-                        # Fetch book information
-                        ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])}))
-                        books_target_id.append(value['targetBookId'])
-                        book_details.extend(ret)
-                        # Fetch book cover
-                        ret = ret[0]
-                        pic = ret["rawCoverPic"].decode("utf-8")
-                        book_cover_picture = json.dumps(pic)
-                        books_covers.append(book_cover_picture)
+            # Check if the query returned results
+            if len(query_resp):
+                # Prettify the fetched data
+                data = [i['books'] for i in query_resp]
+                # Iterate over the books details by book ID.
+                book_details = []
+                books_covers = []
+                books_target_id = []
+                for value in data:
+                    # Fetch book information
+                    ret = list(mongo.db.library.find({'_id': ObjectId(value['targetBookId'])}))
+                    books_target_id.append(value['targetBookId'])
+                    book_details.extend(ret)
+                    # Fetch book cover
+                    ret = ret[0]
+                    pic = ret["rawCoverPic"].decode("utf-8")
+                    book_cover_picture = json.dumps(pic)
+                    books_covers.append(book_cover_picture)
 
-                    # Make sure a book was found
-                    if len(book_details):
-                        # Prepare the answer back
-                        self.response.clear()
-                        for idx, value in enumerate(data):
-                            info = {
-                                "successOnRequest": True,
-                                "errorCode": ValidationCodes.SUCCESS,
-                                "readingInProgress": value["readingInProgress"],
-                                "readingPaused": value["readingPaused"],
-                                "readingCanceled": value["readingCanceled"],
-                                "readingFinished": value["readingFinished"],
-                                "bookInfo":
-                                    {
-                                        "title": book_details[idx]["title"],
-                                        "author": book_details[idx]["author"],
-                                        "publisher": book_details[idx]["publisher"],
-                                        "isbn": book_details[idx]["isbn"],
-                                        "pagesQty": book_details[idx]["pagesQty"],
-                                        "coverPic": books_covers[idx],
-                                        "targetBookId": books_target_id[idx],
-                                    }
-                            }
-                            self.response.append(info)
+                # Make sure a book was found
+                if len(book_details):
+                    # Prepare the answer back
+                    self.response.clear()
+                    for idx, value in enumerate(data):
+                        info = {
+                            "successOnRequest": True,
+                            "errorCode": ValidationCodes.SUCCESS,
+                            "readingInProgress": value["readingInProgress"],
+                            "readingPaused": value["readingPaused"],
+                            "readingCanceled": value["readingCanceled"],
+                            "readingFinished": value["readingFinished"],
+                            "bookInfo":
+                                {
+                                    "title": book_details[idx]["title"],
+                                    "author": book_details[idx]["author"],
+                                    "publisher": book_details[idx]["publisher"],
+                                    "isbn": book_details[idx]["isbn"],
+                                    "pagesQty": book_details[idx]["pagesQty"],
+                                    "coverPic": books_covers[idx],
+                                    "targetBookId": books_target_id[idx],
+                                }
+                        }
+                        self.response.append(info)
 
         except Exception as e:
             # If something wrong happens, raise an Internal server error
@@ -341,7 +241,7 @@ class UserShelf(object):
 
     def update_book_status(self, user_shelf_id, target_book_id, status, mongo):
         """
-        Update the status of a book on user shelf.
+        Update the book status.
         """
 
         try:

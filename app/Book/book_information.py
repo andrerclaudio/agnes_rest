@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class RetrieveBookInformation(object):
     """
-    Retrieve information about a Book locally.
+    Retrieve information about a Book.
     """
 
     def __init__(self):

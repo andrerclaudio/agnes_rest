@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 """
-Create Flask object, related Queries and basic routes.
+Create Flask object, Database connector and basic routes.
 """
 application = CreateApp()
 app = application.app
@@ -34,30 +34,27 @@ def verify_password(email, password):
         # Fetch the User ID
         query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id', 'userShelfId'}))
 
-        # TODO Crypt the data on rest
+        # TODO Crypt the data on database
         # TODO Register the login time
 
         # Check if the email is in Database
         if len(query_resp):
             user_id = str(query_resp[0]['_id'])
             user_password = query_resp[0]['password']
-            user_shelf_id = query_resp[0]['userShelfId']
+            shelf_id = query_resp[0]['userShelfId']
             # The user exist
             if password == user_password:
                 # the password is correct
-                return user_id, user_shelf_id
+                return user_id, shelf_id
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 
 @app.route('/', methods=['GET'])
 def index():
     """Application is alive"""
-    # This route is used when the incoming user is not registered yet.
-    message = {
-        "welcome":
-            {
-                "msg": "Agnes. Your reading companion!"
-            }
-    }
+    message = {"Agnes. Your reading companion!"}
     resp = jsonify(message)
     # Sending OK response
     resp.status_code = 200
@@ -84,6 +81,9 @@ def page_not_found(e):
     return resp
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 @app.route('/unknown/validate_email', methods=['POST'])
 def unknown_user_validate_email():
     """
@@ -95,8 +95,7 @@ def unknown_user_validate_email():
 
     try:
         user_email = request.values.get('email')
-        unknown = UnknownUser()
-        ret, code = unknown.validate_email(email=user_email, mongo=mongoDB)
+        ret, code = UnknownUser().validate_email(user_email, mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -122,8 +121,7 @@ def unknown_user_validate_code():
     try:
         user_code = request.values.get('code')
         user_email = request.values.get('email')
-        unknown = UnknownUser()
-        ret, code = unknown.validate_code(verif_code=user_code, email=user_email, mongo=mongoDB)
+        ret, code = UnknownUser().validate_code(user_code, user_email, mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -147,12 +145,9 @@ def unknown_user_create_user():
     ret = []
 
     try:
-        # data = request.get_json()
-        # user_email = request.values.get('email')
         user_password = request.values.get('password')
         user_email = request.values.get('email')
-        unknown = UnknownUser()
-        ret, code = unknown.create_user(password=user_password, email=user_email, mongo=mongoDB)
+        ret, code = UnknownUser().create_user(user_password, user_email, mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -166,9 +161,12 @@ def unknown_user_create_user():
         return resp
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 @app.route('/user/shelf/add_new_book', methods=['POST'])
 @auth.login_required
-def user_add_new_books():
+def user_add_new_book():
     """
     Add a new book to a given user shelf.
     """
@@ -195,9 +193,9 @@ def user_add_new_books():
         return resp
 
 
-@app.route('/user/shelf/current_readings', methods=['GET'])
+@app.route('/user/shelf/books', methods=['GET'])
 @auth.login_required
-def user_current_readings():
+def user_shelf():
     """
     Fetch the current reading from a given user.
     """
@@ -206,11 +204,12 @@ def user_current_readings():
     ret = []
 
     # Fetch the User Shelf ID from the login data
-    _, user_shelf_id = auth.current_user()
+    _, shelf_id = auth.current_user()
 
     try:
-        # Fetch the User current readings
-        ret, code = UserShelf().current_readings(user_shelf_id, mongo=mongoDB)
+        # Fetch the User Books as the given parameters
+        book_status = request.values.get('bookStatus')
+        ret, code = UserShelf().books(shelf_id, book_status, mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
@@ -222,6 +221,39 @@ def user_current_readings():
         resp.status_code = code
         # Returning the object
         return resp
+
+
+@app.route('/user/shelf/update_book_status', methods=['POST'])
+@auth.login_required
+def update_book_status():
+    """
+    Update a book status on user Shelf.
+    """
+    # Default answer and Not implemented error.
+    code = 501
+    ret = []
+
+    # Fetch the User Shelf ID from the login data
+    _, user_shelf_id = auth.current_user()
+
+    try:
+        book_status = request.values.get('bookStatus')
+        target_book_id = request.values.get('targetBookId')
+        ret, code = UserShelf().update_book_status(user_shelf_id, target_book_id, book_status, mongoDB)
+
+    except Exception as e:
+        logger.exception(e, exc_info=False)
+
+    finally:
+        # Message to the user
+        resp = jsonify(ret)
+        # Sending the response
+        resp.status_code = code
+        # Returning the object
+        return resp
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 
 @app.route('/library/fetch_book_information', methods=['GET'])
@@ -254,61 +286,4 @@ def library_fetch_book_information():
         # Returning the object
         return resp
 
-
-@app.route('/user/shelf/change_book_status', methods=['POST'])
-@auth.login_required
-def update_book_status():
-    """
-    Update a book status on user Shelf.
-    """
-    # Default answer and Not implemented error.
-    code = 501
-    ret = []
-
-    # Fetch the User Shelf ID from the login data
-    _, user_shelf_id = auth.current_user()
-
-    try:
-        book_status = request.values.get('bookStatus')
-        target_book_id = request.values.get('targetBookId')
-        ret, code = UserShelf().update_book_status(user_shelf_id, target_book_id, book_status, mongo=mongoDB)
-
-    except Exception as e:
-        logger.exception(e, exc_info=False)
-
-    finally:
-        # Message to the user
-        resp = jsonify(ret)
-        # Sending the response
-        resp.status_code = code
-        # Returning the object
-        return resp
-
-
-@app.route('/user/shelf/user_shelf', methods=['GET'])
-@auth.login_required
-def user_not_active_books():
-    """
-    Fetch the current reading from a given user.
-    """
-    # Default answer and Not implemented error.
-    code = 501
-    ret = []
-
-    # Fetch the User Shelf ID from the login data
-    _, user_shelf_id = auth.current_user()
-
-    try:
-        # Fetch the User current readings
-        ret, code = UserShelf().not_active_books(user_shelf_id, mongo=mongoDB)
-
-    except Exception as e:
-        logger.exception(e, exc_info=False)
-
-    finally:
-        # Message to the user
-        resp = jsonify(ret)
-        # Sending the response
-        resp.status_code = code
-        # Returning the object
-        return resp
+# ----------------------------------------------------------------------------------------------------------------------

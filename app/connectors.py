@@ -24,20 +24,13 @@ class CreateApp(object):
             # If the application is running locally, use config.ini anf if not, set environment variables
             config = configparser.ConfigParser()
             config.read_file(open('config.ini'))
-            # Agnes API secret value
-            # secret = config['AGNES_SECRET']['secret']
             # Mongo path
             mongo_path = config['MONGO_PATH']['url']
         else:
-            # Agnes API secret
-            # secret = os.environ['AGNES_SECRET']
             # Mongo path
             mongo_path = os.environ['MONGO_PATH']
 
-        # Set the API secret value
-        # self.app.config['SECRET_KEY'] = secret
-        # Bearer authentication
-        # self.auth = HTTPTokenAuth(scheme='Bearer')
+        # Authentication
         self.auth = HTTPBasicAuth()
         # MongoDB
         self.app.config["MONGO_URI"] = mongo_path
