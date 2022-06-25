@@ -374,6 +374,12 @@ class UserShelf(object):
                               "books.$.readingFinished": False,
                               }})
 
+                mongo.db.users_shelf.update_one(
+                    {"_id": ObjectId(user_shelf_id),
+                     "books.targetBookId": target_book_id},
+                    {"$set": {"books.$.sameBookCount.0.canceledAt": datetime.now(tz=pytz.UTC),
+                              }})
+
             elif status == 'paused':
                 # Set the books as Paused
                 updated = mongo.db.users_shelf.update_one(
