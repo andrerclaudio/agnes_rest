@@ -277,7 +277,10 @@ class UserShelf(object):
                 # Fetch readings in Progress or Paused on a given User ID
                 query_resp = list(mongo.db.users_shelf.aggregate([{'$match': {'_id': ObjectId(user_shelf_id)}},
                                                                   {'$unwind': "$books"},
-                                                                  {'$match': {'books.readingCanceled': True}}]))
+                                                                  {'$match': {"$or": [
+                                                                      {'books.readingCanceled': True},
+                                                                      {'books.readingFinished': True}
+                                                                  ]}}]))
 
                 # Check if the query returned results
                 if len(query_resp):
