@@ -287,7 +287,7 @@ def update_book_status():
 
 @app.route('/user/shelf/user_shelf', methods=['GET'])
 @auth.login_required
-def user_current_readings():
+def user_not_active_books():
     """
     Fetch the current reading from a given user.
     """
@@ -300,7 +300,7 @@ def user_current_readings():
 
     try:
         # Fetch the User current readings
-        ret, code = UserShelf().current_readings(user_shelf_id, mongo=mongoDB)
+        ret, code = UserShelf().not_active_books(user_shelf_id, mongo=mongoDB)
 
     except Exception as e:
         logger.exception(e, exc_info=False)
