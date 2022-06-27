@@ -20,7 +20,7 @@ def send_email(destination, code):
     ret = False
 
     try:
-
+        # Use gmail is running local
         if 'CLOUD' not in os.environ:
             # If the application is running locally, use config.ini
             config = configparser.ConfigParser()
@@ -43,8 +43,8 @@ def send_email(destination, code):
             with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
                 server.login(sender, password)
                 server.sendmail(sender, destination, message)
-                logger.debug('Sending email to {}'.format(destination))
 
+            logger.debug('Sending email to {}'.format(destination))
             ret = True
 
         else:
@@ -66,7 +66,7 @@ def send_email(destination, code):
                 'x-trustifi-secret': os.environ['TRUSTIFI_SECRET'],
                 'Content-Type': 'application/json'
             }
-
+            # TODO Improve the email format. Let it more Readable
             response = requests.request("POST", url, headers=headers, data=payload)
             logger.debug(response)
             ret = True

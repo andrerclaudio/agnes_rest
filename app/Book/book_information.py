@@ -31,7 +31,6 @@ class RetrieveBookInformation(object):
                 "bookInfo": BookFullInformation.bookFullInformation
             }
         ]
-        # The code is Ok but more details is in self.response
         self.code = 200
 
     @isbn_checker
@@ -90,7 +89,7 @@ class RetrieveBookInformation(object):
     @isbn_checker
     def on_internet(self, isbn, mongo):
         """
-        Retrieve information about a Book remote.
+        Retrieve information about a Book remotely.
         """
 
         try:

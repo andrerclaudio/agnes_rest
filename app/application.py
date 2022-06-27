@@ -29,7 +29,7 @@ mongoDB = application.mongo
 
 @auth.verify_password
 def verify_password(email, password):
-    # Check if the connection is secure
+    # Make sure the connection is secure
     if request.is_secure:
         # Fetch the User ID
         query_resp = list(mongoDB.db.users_info.find({'userEmail': email}, {'password', '_id', 'userShelfId'}))
@@ -37,19 +37,19 @@ def verify_password(email, password):
         # TODO Crypt the data on database
         # TODO Register the login time
 
-        # Check if the email is in Database
+        # Confirm the passed email exists
         if len(query_resp):
             user_id = str(query_resp[0]['_id'])
             user_password = query_resp[0]['password']
-            shelf_id = query_resp[0]['userShelfId']
-            # The user exist
+            user_shelf_id = query_resp[0]['userShelfId']
+            # Check the password
             if password == user_password:
-                # the password is correct
-                return user_id, shelf_id
+                # Return the user ID and its shelf ID
+                return user_id, user_shelf_id
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
+# Basic routes
 
 @app.route('/', methods=['GET'])
 def index():
@@ -82,7 +82,7 @@ def page_not_found(e):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
+# New user steps
 
 @app.route('/unknown/validate_email', methods=['POST'])
 def unknown_user_validate_email():
@@ -197,7 +197,7 @@ def user_add_new_book():
 @auth.login_required
 def user_shelf():
     """
-    Fetch the current reading from a given user.
+    Fetch the user Books parsing the incoming condition.
     """
     # Default answer and Not implemented error.
     code = 501
